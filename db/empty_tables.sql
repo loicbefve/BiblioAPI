@@ -68,11 +68,13 @@ CREATE TABLE fonds_johannique (
 
 CREATE TABLE index_pays_lorrain (
   id INT AUTO_INCREMENT PRIMARY KEY,
+  id_texte TEXT,
   commentaires TEXT
 );
 
 CREATE TABLE manuscrits (
   id INT AUTO_INCREMENT PRIMARY KEY,
+  id_texte TEXT,
   commentaires TEXT
 );
 
