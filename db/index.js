@@ -6,7 +6,8 @@ const pool = mysql.createPool({
   user: config.user,
   password: config.password,
   database: config.database,
+  connectionLimit: config.maxConnections,
 });
 
 // Export the pool object to use in other parts of your application
-module.exports = pool.promise();
+module.exports = pool;
