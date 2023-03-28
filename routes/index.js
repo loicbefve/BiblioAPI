@@ -10,16 +10,21 @@ router.get('/searchImprimes', function (req, res, next) {
   const titleParam = query.title;
   const keywordsParam = query.keywords;
 
+  console.log(req.query);
+  console.log(titleParam);
+  console.log(keywordsParam);
+
   /* TRANSFORM URI QUERY PARAMETERS INTO SQL STATEMENTS */
-  const authorQuery = authorParam
-    ? `MATCH(auteur) AGAINST('${authorParam}')`
-    : '';
+  const authorQuery =
+    authorParam !== '' ? `MATCH(auteur) AGAINST('${authorParam}')` : '';
 
-  const titleQuery = titleParam ? `MATCH(titre) AGAINST('${titleParam}')` : '';
+  const titleQuery =
+    titleParam !== '' ? `MATCH(titre) AGAINST('${titleParam}')` : '';
 
-  const keywordsQuery = keywordsParam
-    ? `MATCH(cote,lieu,format,auteur,titre,annee,etat,commentaire) AGAINST ('${keywordsParam}')`
-    : '';
+  const keywordsQuery =
+    keywordsParam !== ''
+      ? `MATCH(cote,lieu,format,auteur,titre,annee,etat,commentaire) AGAINST ('${keywordsParam}')`
+      : '';
 
   /* I JOINED THE CONDITIONS TOGETHER FILTERING EMPTY ONES */
   const joinedConditions = [authorQuery, titleQuery, keywordsQuery]
