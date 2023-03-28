@@ -3,6 +3,7 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const cors = require('cors');
 require('dotenv').config();
 
 const indexRouter = require('./routes/index');
@@ -19,6 +20,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// CORS configuration
+// TODO: Set a correct cors policy
+// const corsOptions = {
+//   origin: 'http://example.com', // Allow only this origin to access the API
+//   methods: ['GET', 'POST'], // Allowed HTTP methods
+//   allowedHeaders: ['Content-Type', 'Authorization'], // Allowed request headers
+//   optionsSuccessStatus: 200, // Status code for preflight request (OPTIONS)
+// };
+app.use(cors());
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
