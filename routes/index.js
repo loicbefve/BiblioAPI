@@ -4,15 +4,13 @@ const pool = require('../db/index');
 
 /* GET home page. */
 router.get('/searchImprimes', function (req, res, next) {
+  /* GET URI QUERY PARAMETERS */
   const query = req.query;
-
   const authorParam = query.author;
   const titleParam = query.title;
   const keywordsParam = query.keywords;
-  console.log(authorParam);
-  console.log(titleParam);
-  console.log(keywordsParam);
 
+  /* TRANSFORM URI QUERY PARAMETERS INTO SQL STATEMENTS */
   const authorQuery = authorParam
     ? `MATCH(auteur) AGAINST('${authorParam}')`
     : '';
@@ -20,23 +18,69 @@ router.get('/searchImprimes', function (req, res, next) {
   const titleQuery = titleParam ? `MATCH(titre) AGAINST('${titleParam}')` : '';
 
   const keywordsQuery = keywordsParam
-    ? `MATCH(cote,type,auteur,titre,couverture,langue,edition,datation,contenu,etat,notes,emplacement) AGAINST ('${keywordsParam}')`
+    ? `MATCH(cote,lieu,format,auteur,titre,annee,etat,commentaire) AGAINST ('${keywordsParam}')`
     : '';
 
-  const completeCondition = [authorQuery, titleQuery, keywordsQuery]
-    .filter((q) => q !== '')
+  /* I JOINED THE CONDITIONS TOGETHER FILTERING EMPTY ONES */
+  const joinedConditions = [authorQuery, titleQuery, keywordsQuery]
+    .filter((query) => query !== '')
     .join(' AND ');
 
-  const finalQuery = `SELECT * FROM imprimes WHERE ${completeCondition}`;
+  /* IF NO CONDITIONS AT ALL THEN THE CONDITION IS 1=1 */
+  const finalCondition = joinedConditions === '' ? '1=1' : joinedConditions;
 
-  console.log(finalQuery);
+  const finalQuery = `SELECT imp.*, GROUP_CONCAT(ind.url) as urls 
+                      FROM imprimes as imp 
+                      LEFT JOIN index_fiches_total as ind 
+                      ON (imp.cote=ind.cote) 
+                      WHERE ${finalCondition} 
+                      GROUP BY 
+                        imp.id,
+                        imp.epi,
+                        imp.travee,
+                        imp.tablette,
+                        imp.cote,
+                        imp.ordre,
+                        imp.lieu,
+                        imp.format,
+                        imp.auteur,
+                        imp.titre,
+                        imp.annee,
+                        imp.tome,
+                        imp.etat,
+                        imp.commentaire
+                        `;
 
-  pool.query(finalQuery, function (error, results, fields) {
+  /* QUERY THE DATABASE */
+  pool.query(finalQuery, function (error, results) {
     if (error) throw error;
-    console.log('The solution is: ', results);
-  });
+    console.log(results);
+    /* Transform the result into a JSON object to send */
+    const json_response = results.map((res) => {
+      const returned_object = {
+        metadatas: {
+          epi: res.epi,
+          travee: res.travee,
+          tablette: res.tablette,
+          cote: res.cote,
+          ordre: res.ordre,
+          lieu: res.lieu,
+          format: res.format,
+          auteur: res.auteur,
+          titre: res.titre,
+          annee: res.annee,
+          tome: res.tome,
+          etat: res.etat,
+          commentaire: res.commentaire,
+        },
+        urls: res.urls ? res.urls.split(',') : [],
+      };
+      console.log(returned_object);
+      return returned_object;
+    });
 
-  res.render('index', { title: 'Express' });
+    res.json(json_response);
+  });
 });
 
 router.get('/searchFactums', function (req, res, next) {
@@ -92,7 +136,7 @@ router.get('/searchFondsJohannique', function (req, res, next) {
   const titleQuery = titleParam ? `MATCH(titre) AGAINST('${titleParam}')` : '';
 
   const keywordsQuery = keywordsParam
-    ? `MATCH(cote,type,auteur,titre,couverture,langue,edition,datation,contenu,etat,notes,emplacement) AGAINST ('${keywordsParam}')`
+    ? `MATCH(auteur,titre,annee,cote,etat,metrage_ou_commentaire,carton) AGAINST ('${keywordsParam}')`
     : '';
 
   const completeCondition = [authorQuery, titleQuery, keywordsQuery]
@@ -128,7 +172,7 @@ router.get('/searchFondsDocumentaire', function (req, res, next) {
   const titleQuery = titleParam ? `MATCH(titre) AGAINST('${titleParam}')` : '';
 
   const keywordsQuery = keywordsParam
-    ? `MATCH(cote,type,auteur,titre,couverture,langue,edition,datation,contenu,etat,notes,emplacement) AGAINST ('${keywordsParam}')`
+    ? `MATCH(n_carton,fonds,type_de_document,auteur,auteur_bis,titre,couverture,langue,edition,datation,contenu,etat,ancien_propietaire,notes,don,emplacement_initial_dans_la_bibliotheque) AGAINST ('${keywordsParam}')`
     : '';
 
   const completeCondition = [authorQuery, titleQuery, keywordsQuery]
