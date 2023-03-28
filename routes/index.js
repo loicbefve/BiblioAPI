@@ -23,7 +23,7 @@ router.get('/searchImprimes', function (req, res, next) {
 
   const keywordsQuery =
     keywordsParam !== ''
-      ? `MATCH(cote,lieu,format,auteur,titre,annee,etat,commentaire) AGAINST ('${keywordsParam}')`
+      ? `MATCH(imp.cote,lieu,format,auteur,titre,annee,etat,commentaire) AGAINST ('${keywordsParam}')`
       : '';
 
   /* I JOINED THE CONDITIONS TOGETHER FILTERING EMPTY ONES */
