@@ -16,7 +16,6 @@ deploy_dev:
     - yarn install --frozen-lockfile
     # Deploy to remote server
     - rsync -rvog --delete --chmod=774 --chown=$DEPLOY_USER:$DEPLOY_GROUP  . $DEPLOY_USER@$SERVER_IP:$DEPLOY_PATH
-    - ssh $DEPLOY_USER@$SERVER_IP 'bash ./deploy_biblodev_api.sh'
     - ssh $DEPLOY_USER@$SERVER_IP 'sudo systemctl daemon-reload && sudo systemctl enable bibliodev-api && sudo systemctl restart bibliodev-api'
   environment:
     name: development
