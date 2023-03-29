@@ -1,0 +1,21 @@
+stages:
+  - deploy
+
+cache:
+  key:
+    files:
+    - yarn.lock
+  paths:
+  - node_modules/
+
+
+deploy_dev:
+  stage: deploy
+  script:
+    - npm install yarn
+    - yarn install --frozen-lockfile
+    # Deploy to remote server
+    - rsync -rvog --delete --chmod=774 --chown=$DEPLOY_USER:$DEPLOY_GROUP  . $DEPLOY_USER@$SERVER_IP:$DEPLOY_PATH
+  environment:
+    name: development
+    url: http://bibliodev-api.societe-histoire-lorraine.com/
