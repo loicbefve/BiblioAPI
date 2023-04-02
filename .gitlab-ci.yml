@@ -16,7 +16,7 @@ deploy_dev:
     - yarn install --frozen-lockfile
     # Deploy to remote server
     - rsync -rvog --delete --chmod=774 --chown=$DEV_DEPLOY_USER:$DEV_DEPLOY_GROUP  . $DEV_DEPLOY_USER@$DEV_SERVER_IP:$DEV_DEPLOY_PATH
-    #- ssh $DEVDEPLOY_USER@$SERVER_IP 'sudo systemctl daemon-reload && sudo systemctl enable bibliodev-api && sudo systemctl restart bibliodev-api'
+    - ssh $DEVDEPLOY_USER@$DEV_SERVER_IP 'sudo systemctl restart bibliodev-api.service'
   environment:
     name: development
     url: http://bibliodev-api.societe-histoire-lorraine.com/
