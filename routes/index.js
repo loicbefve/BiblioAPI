@@ -16,14 +16,18 @@ router.get('/searchImprimes', function (req, res, next) {
 
   /* TRANSFORM URI QUERY PARAMETERS INTO SQL STATEMENTS */
   const authorQuery =
-    authorParam !== '' ? `MATCH(auteur) AGAINST('${authorParam}')` : '';
+    authorParam !== ''
+      ? `MATCH(auteur) AGAINST('${authorParam}' IN BOOLEAN MODE)`
+      : '';
 
   const titleQuery =
-    titleParam !== '' ? `MATCH(titre) AGAINST('${titleParam}')` : '';
+    titleParam !== ''
+      ? `MATCH(titre) AGAINST('${titleParam}' IN BOOLEAN MODE)`
+      : '';
 
   const keywordsQuery =
     keywordsParam !== ''
-      ? `MATCH(imp.cote,lieu,format,auteur,titre,annee,etat,commentaire) AGAINST ('${keywordsParam}')`
+      ? `MATCH(imp.cote,lieu,format,auteur,titre,annee,etat,commentaire) AGAINST ('${keywordsParam}' IN BOOLEAN MODE)`
       : '';
 
   /* I JOINED THE CONDITIONS TOGETHER FILTERING EMPTY ONES */
