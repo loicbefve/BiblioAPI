@@ -61,6 +61,7 @@ CREATE TABLE fonds_johannique (
   titre TEXT,
   annee TEXT,
   cote TEXT,
+  tome TEXT,
   etat TEXT,
   metrage_ou_commentaire TEXT,
   carton TEXT
