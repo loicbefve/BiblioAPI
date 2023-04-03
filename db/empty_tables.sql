@@ -92,27 +92,25 @@ CREATE TABLE index_fiches_total (
 
 
 
+CREATE FULLTEXT INDEX keywords_idx ON imprimes(cote,lieu,format,auteur,titre,annee,etat,commentaire);
+CREATE FULLTEXT INDEX titre_idx ON imprimes(titre);
+CREATE FULLTEXT INDEX auteur_idx ON imprimes(auteur);
 
+CREATE FULLTEXT INDEX keywords_idx ON factums(cote,type,auteur,titre,couverture,langue,edition,datation,contenu,etat,notes,emplacement);
+CREATE FULLTEXT INDEX titre_idx ON factums(titre);
+CREATE FULLTEXT INDEX auteur_idx ON factums(auteur);
 
-ALTER TABLE imprimes ADD FULLTEXT (cote,lieu,format,auteur,titre,annee,etat,commentaire);
-ALTER TABLE imprimes ADD FULLTEXT (titre);
-ALTER TABLE imprimes ADD FULLTEXT (auteur);
+CREATE FULLTEXT INDEX keywords_idx ON fonds_documentaire(n_carton,fonds,type_de_document,auteur,auteur_bis,titre,couverture,langue,edition,datation,contenu,etat,ancien_propietaire,notes,don,emplacement_initial_dans_la_bibliotheque);
+CREATE FULLTEXT INDEX titre_idx ON fonds_documentaire(titre);
+CREATE FULLTEXT INDEX auteur_idx ON fonds_documentaire(auteur);
 
-ALTER TABLE factums ADD FULLTEXT (cote,type,auteur,titre,couverture,langue,edition,datation,contenu,etat,notes,emplacement);
-ALTER TABLE factums ADD FULLTEXT (auteur);
-ALTER TABLE factums ADD FULLTEXT (titre);
+CREATE FULLTEXT INDEX keywords_idx ON fonds_johannique(auteur,titre,annee,cote,etat,metrage_ou_commentaire,carton);
+CREATE FULLTEXT INDEX titre_idx ON fonds_johannique(titre);
+CREATE FULLTEXT INDEX auteur_idx ON fonds_johannique(auteur);
 
-ALTER TABLE fonds_documentaire ADD FULLTEXT (n_carton,fonds,type_de_document,auteur,auteur_bis,titre,couverture,langue,edition,datation,contenu,etat,ancien_propietaire,notes,don,emplacement_initial_dans_la_bibliotheque);
-ALTER TABLE fonds_documentaire ADD FULLTEXT (auteur, auteur_bis);
-ALTER TABLE fonds_documentaire ADD FULLTEXT (titre);
+CREATE FULLTEXT INDEX commentaire_idx ON index_pays_lorrain(commentaires);
 
-ALTER TABLE fonds_johannique ADD FULLTEXT (auteur,titre,annee,cote,etat,metrage_ou_commentaire,carton);
-ALTER TABLE fonds_johannique ADD FULLTEXT (auteur);
-ALTER TABLE fonds_johannique ADD FULLTEXT (titre);
-
-ALTER TABLE index_pays_lorrain ADD FULLTEXT (commentaires);
-
-ALTER TABLE manuscrits ADD FULLTEXT (commentaires);
+CREATE FULLTEXT INDEX commentaire_idx ON manuscrits(commentaires);
 
 
 
