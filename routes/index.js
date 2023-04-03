@@ -10,10 +10,6 @@ router.get('/searchImprimes', function (req, res, next) {
   const titleParam = query.title;
   const keywordsParam = query.keywords;
 
-  console.log(req.query);
-  console.log(titleParam);
-  console.log(keywordsParam);
-
   /* TRANSFORM URI QUERY PARAMETERS INTO SQL STATEMENTS */
   const authorQuery =
     authorParam !== ''
@@ -63,10 +59,9 @@ router.get('/searchImprimes', function (req, res, next) {
   /* QUERY THE DATABASE */
   pool.query(finalQuery, function (error, results) {
     if (error) throw error;
-    console.log(results);
     /* Transform the result into a JSON object to send */
     const json_response = results.map((res) => {
-      const returned_object = {
+      return {
         metadatas: {
           epi: res.epi,
           travee: res.travee,
@@ -84,8 +79,6 @@ router.get('/searchImprimes', function (req, res, next) {
         },
         urls: res.urls ? res.urls.split(',') : [],
       };
-      console.log(returned_object);
-      return returned_object;
     });
 
     res.json(json_response);
