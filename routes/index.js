@@ -12,18 +12,14 @@ router.get('/searchImprimes', function (req, res, next) {
 
   /* TRANSFORM URI QUERY PARAMETERS INTO SQL STATEMENTS */
   const authorQuery =
-    authorParam !== ''
-      ? `MATCH(auteur) AGAINST('${authorParam}' IN BOOLEAN MODE)`
-      : '';
+    authorParam !== '' ? `MATCH(auteur) AGAINST('${authorParam}')` : '';
 
   const titleQuery =
-    titleParam !== ''
-      ? `MATCH(titre) AGAINST('${titleParam}' IN BOOLEAN MODE)`
-      : '';
+    titleParam !== '' ? `MATCH(titre) AGAINST('${titleParam}')` : '';
 
   const keywordsQuery =
     keywordsParam !== ''
-      ? `MATCH(imp.cote,lieu,format,auteur,titre,annee,etat,commentaire) AGAINST ('${keywordsParam}' IN BOOLEAN MODE)`
+      ? `MATCH(imp.cote,lieu,format,auteur,titre,annee,etat,commentaire) AGAINST ('${keywordsParam}')`
       : '';
 
   /* I JOINED THE CONDITIONS TOGETHER FILTERING EMPTY ONES */
@@ -86,75 +82,155 @@ router.get('/searchImprimes', function (req, res, next) {
 });
 
 router.get('/searchFactums', function (req, res, next) {
+  /* GET URI QUERY PARAMETERS */
   const query = req.query;
-
   const authorParam = query.author;
   const titleParam = query.title;
   const keywordsParam = query.keywords;
-  console.log(authorParam);
-  console.log(titleParam);
-  console.log(keywordsParam);
 
-  const authorQuery = authorParam
-    ? `MATCH(auteur) AGAINST('${authorParam}')`
-    : '';
+  /* TRANSFORM URI QUERY PARAMETERS INTO SQL STATEMENTS */
+  const authorQuery =
+    authorParam !== '' ? `MATCH(auteur) AGAINST('${authorParam}')` : '';
 
-  const titleQuery = titleParam ? `MATCH(titre) AGAINST('${titleParam}')` : '';
+  const titleQuery =
+    titleParam !== '' ? `MATCH(titre) AGAINST('${titleParam}')` : '';
 
-  const keywordsQuery = keywordsParam
-    ? `MATCH(cote,type,auteur,titre,couverture,langue,edition,datation,contenu,etat,notes,emplacement) AGAINST ('${keywordsParam}')`
-    : '';
+  const keywordsQuery =
+    keywordsParam !== ''
+      ? `MATCH(fac.cote,type,auteur,titre,couverture,langue,edition,datation,contenu,etat,notes,emplacement) AGAINST ('${keywordsParam}')`
+      : '';
 
-  const completeCondition = [authorQuery, titleQuery, keywordsQuery]
-    .filter((q) => q !== '')
+  /* I JOINED THE CONDITIONS TOGETHER FILTERING EMPTY ONES */
+  const joinedConditions = [authorQuery, titleQuery, keywordsQuery]
+    .filter((query) => query !== '')
     .join(' AND ');
 
-  const finalQuery = `SELECT * FROM factums WHERE ${completeCondition}`;
+  /* IF NO CONDITIONS AT ALL THEN THE CONDITION IS 1=1 */
+  const finalCondition = joinedConditions === '' ? '1=1' : joinedConditions;
 
-  console.log(finalQuery);
+  const finalQuery = `SELECT fac.*, GROUP_CONCAT(ind.url) as urls 
+                      FROM factums as fac 
+                      LEFT JOIN index_fiches_total as ind 
+                      ON (fac.cote=ind.cote) 
+                      WHERE ${finalCondition} 
+                      GROUP BY 
+                        fac.id,
+                        fac.cote,
+                        fac.tome,
+                        fac.type,
+                        fac.auteur,
+                        fac.titre,
+                        fac.couverture,
+                        fac.langue,
+                        fac.edition,
+                        fac.datation,
+                        fac.contenu,
+                        fac.etat,
+                        fac.notes,
+                        fac.emplacement
+                        `;
 
-  pool.query(finalQuery, function (error, results, fields) {
+  /* QUERY THE DATABASE */
+  pool.query(finalQuery, function (error, results) {
     if (error) throw error;
-    console.log('The solution is: ', results);
-  });
+    /* Transform the result into a JSON object to send */
+    const json_response = results.map((res) => {
+      return {
+        metadatas: {
+          cote: res.cote,
+          tome: res.tome,
+          type: res.type,
+          auteur: res.auteur,
+          titre: res.titre,
+          couverture: res.couverture,
+          langue: res.langue,
+          edition: res.edition,
+          datation: res.datation,
+          contenu: res.contenu,
+          etat: res.etat,
+          notes: res.notes,
+          emplacement: res.emplacement,
+        },
+        urls: res.urls ? res.urls.split(',') : [],
+      };
+    });
 
-  res.render('index', { title: 'Express' });
+    res.json(json_response);
+  });
 });
 
 router.get('/searchFondsJohannique', function (req, res, next) {
+  /* GET URI QUERY PARAMETERS */
   const query = req.query;
-
   const authorParam = query.author;
   const titleParam = query.title;
   const keywordsParam = query.keywords;
-  console.log(authorParam);
-  console.log(titleParam);
-  console.log(keywordsParam);
 
-  const authorQuery = authorParam
-    ? `MATCH(auteur) AGAINST('${authorParam}')`
-    : '';
+  /* TRANSFORM URI QUERY PARAMETERS INTO SQL STATEMENTS */
+  const authorQuery =
+    authorParam !== '' ? `MATCH(auteur) AGAINST('${authorParam}')` : '';
 
-  const titleQuery = titleParam ? `MATCH(titre) AGAINST('${titleParam}')` : '';
+  const titleQuery =
+    titleParam !== '' ? `MATCH(titre) AGAINST('${titleParam}')` : '';
 
-  const keywordsQuery = keywordsParam
-    ? `MATCH(auteur,titre,annee,cote,etat,metrage_ou_commentaire,carton) AGAINST ('${keywordsParam}')`
-    : '';
+  const keywordsQuery =
+    keywordsParam !== ''
+      ? `MATCH(auteur,titre,annee,fon.cote,etat,metrage_ou_commentaire,carton) AGAINST ('${keywordsParam}')`
+      : '';
 
-  const completeCondition = [authorQuery, titleQuery, keywordsQuery]
-    .filter((q) => q !== '')
+  /* I JOINED THE CONDITIONS TOGETHER FILTERING EMPTY ONES */
+  const joinedConditions = [authorQuery, titleQuery, keywordsQuery]
+    .filter((query) => query !== '')
     .join(' AND ');
 
-  const finalQuery = `SELECT * FROM fonds_johannique WHERE ${completeCondition}`;
+  /* IF NO CONDITIONS AT ALL THEN THE CONDITION IS 1=1 */
+  const finalCondition = joinedConditions === '' ? '1=1' : joinedConditions;
 
-  console.log(finalQuery);
+  const finalQuery = `SELECT fon.*, GROUP_CONCAT(ind.url) as urls 
+                      FROM fonds_johannique as fon 
+                      LEFT JOIN index_fiches_total as ind 
+                      ON (fon.cote=ind.cote) 
+                      WHERE ${finalCondition} 
+                      GROUP BY 
+                        fon.id,
+                        fon.epi,
+                        fon.travee,
+                        fon.tablette,
+                        fon.auteur,
+                        fon.titre,
+                        fon.annee,
+                        fon.cote,
+                        fon.tome,
+                        fon.etat,
+                        fon.metrage_ou_commentaire,
+                        fon.carton
+                        `;
 
-  pool.query(finalQuery, function (error, results, fields) {
+  /* QUERY THE DATABASE */
+  pool.query(finalQuery, function (error, results) {
     if (error) throw error;
-    console.log('The solution is: ', results);
-  });
+    /* Transform the result into a JSON object to send */
+    const json_response = results.map((res) => {
+      return {
+        metadatas: {
+          epi: res.epi,
+          travee: res.travee,
+          tablette: res.tablette,
+          auteur: res.auteur,
+          titre: res.titre,
+          annee: res.annee,
+          cote: res.cote,
+          tome: res.tome,
+          etat: res.etat,
+          metrage_ou_commentaire: res.metrage_ou_commentaire,
+          carton: res.carton,
+        },
+        urls: res.urls ? res.urls.split(',') : [],
+      };
+    });
 
-  res.render('index', { title: 'Express' });
+    res.json(json_response);
+  });
 });
 
 router.get('/searchFondsDocumentaire', function (req, res, next) {
