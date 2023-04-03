@@ -3,7 +3,7 @@ CREATE TABLE imprimes (
   epi TEXT,
   travee TEXT,
   tablette TEXT,
-  cote TEXT,
+  cote VARCHAR(20),
   ordre TEXT,
   lieu TEXT,
   format TEXT,
@@ -17,7 +17,7 @@ CREATE TABLE imprimes (
 
 CREATE TABLE factums (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  cote TEXT,
+  cote VARCHAR(20),
   tome TEXT,
   type TEXT,
   auteur TEXT,
@@ -60,7 +60,7 @@ CREATE TABLE fonds_johannique (
   auteur TEXT,
   titre TEXT,
   annee TEXT,
-  cote TEXT,
+  cote VARCHAR(20),
   tome TEXT,
   etat TEXT,
   metrage_ou_commentaire TEXT,
@@ -83,7 +83,7 @@ CREATE TABLE index_fiches_total (
   url TEXT,
   initiale TEXT,
   classe TEXT,
-  cote TEXT,
+  cote VARCHAR(20),
   tome TEXT
 );
 
@@ -95,6 +95,7 @@ CREATE TABLE index_fiches_total (
 CREATE FULLTEXT INDEX keywords_idx ON imprimes(cote,lieu,format,auteur,titre,annee,etat,commentaire);
 CREATE FULLTEXT INDEX titre_idx ON imprimes(titre);
 CREATE FULLTEXT INDEX auteur_idx ON imprimes(auteur);
+CREATE INDEX cote_idx ON imprimes(cote);
 
 CREATE FULLTEXT INDEX keywords_idx ON factums(cote,type,auteur,titre,couverture,langue,edition,datation,contenu,etat,notes,emplacement);
 CREATE FULLTEXT INDEX titre_idx ON factums(titre);
@@ -111,6 +112,8 @@ CREATE FULLTEXT INDEX auteur_idx ON fonds_johannique(auteur);
 CREATE FULLTEXT INDEX commentaire_idx ON index_pays_lorrain(commentaires);
 
 CREATE FULLTEXT INDEX commentaire_idx ON manuscrits(commentaires);
+
+CREATE INDEX cote_idx ON index_fiches_total(cote);
 
 
 
