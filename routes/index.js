@@ -2,6 +2,12 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db/index');
 
+// UTILS
+function hasTrailingDashOrPlusInWords(phrase) {
+  const words = phrase.split(' ');
+
+  return words.some((word) => word.endsWith('-') || word.endsWith('+'));
+}
 /* GET home page. */
 router.get('/searchImprimes', function (req, res, next) {
   /* GET URI QUERY PARAMETERS */
@@ -16,6 +22,11 @@ router.get('/searchImprimes', function (req, res, next) {
   const queryParams = [];
 
   if (authorParam) {
+    if (hasTrailingDashOrPlusInWords(authorParam)) {
+      return res
+        .status(400)
+        .json({ err: 'No trailing dash allowed in words!' });
+    }
     baseQuery += ' AND MATCH(auteur) AGAINST(? IN BOOLEAN MODE)';
     queryParams.push(authorParam);
   }
