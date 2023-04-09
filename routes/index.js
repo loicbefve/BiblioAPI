@@ -10,54 +10,32 @@ router.get('/searchImprimes', function (req, res, next) {
   const titleParam = decodeURIComponent(query.title);
   const keywordsParam = decodeURIComponent(query.keywords);
 
-  /* TRANSFORM URI QUERY PARAMETERS INTO SQL STATEMENTS */
-  const authorQuery =
-    authorParam !== ''
-      ? `MATCH(auteur) AGAINST('${authorParam}' IN BOOLEAN MODE)`
-      : '';
+  var baseQuery =
+    'SELECT imp.*, GROUP_CONCAT(ind.url) as urls FROM imprimes as imp LEFT JOIN index_fiches_total as ind ON (imp.cote=ind.cote) WHERE 1=1';
 
-  const titleQuery =
-    titleParam !== ''
-      ? `MATCH(titre) AGAINST('${titleParam}' IN BOOLEAN MODE)`
-      : '';
+  const queryParams = [];
 
-  const keywordsQuery =
-    keywordsParam !== ''
-      ? `MATCH(imp.cote,lieu,format,auteur,titre,annee,etat,commentaire) AGAINST ('${keywordsParam}' IN BOOLEAN MODE)`
-      : '';
+  if (authorParam) {
+    baseQuery += ' AND MATCH(auteur) AGAINST(? IN BOOLEAN MODE)';
+    queryParams.push(authorParam);
+  }
 
-  /* I JOINED THE CONDITIONS TOGETHER FILTERING EMPTY ONES */
-  const joinedConditions = [authorQuery, titleQuery, keywordsQuery]
-    .filter((query) => query !== '')
-    .join(' AND ');
+  if (titleParam) {
+    baseQuery += ' AND MATCH(titre) AGAINST(? IN BOOLEAN MODE)';
+    queryParams.push(titleParam);
+  }
 
-  /* IF NO CONDITIONS AT ALL THEN THE CONDITION IS 1=1 */
-  const finalCondition = joinedConditions === '' ? '1=1' : joinedConditions;
-
-  const finalQuery = `SELECT imp.*, GROUP_CONCAT(ind.url) as urls, ${finalCondition}  as score
-                      FROM imprimes as imp 
-                      LEFT JOIN index_fiches_total as ind 
-                      ON (imp.cote=ind.cote) 
-                      WHERE ${finalCondition} 
-                      GROUP BY 
-                        imp.id,
-                        imp.epi,
-                        imp.travee,
-                        imp.tablette,
-                        imp.cote,
-                        imp.ordre,
-                        imp.lieu,
-                        imp.format,
-                        imp.auteur,
-                        imp.titre,
-                        imp.annee,
-                        imp.tome,
-                        imp.etat,
-                        imp.commentaire
-                        `;
+  if (keywordsParam) {
+    baseQuery +=
+      ' AND MATCH(imp.cote,lieu,format,auteur,titre,annee,etat,commentaire) AGAINST (? IN BOOLEAN MODE)';
+    queryParams.push(keywordsParam);
+  }
+  const finalQuery =
+    baseQuery +
+    ' GROUP BY imp.id, imp.epi, imp.travee, imp.tablette, imp.cote, imp.ordre, imp.lieu, imp.format, imp.auteur, imp.titre, imp.annee, imp.tome, imp.etat, imp.commentaire';
 
   /* QUERY THE DATABASE */
-  pool.query(finalQuery, function (error, results) {
+  pool.query(finalQuery, queryParams, function (error, results) {
     if (error) throw error;
     /* Transform the result into a JSON object to send */
     const json_response = results.map((res) => {
@@ -95,50 +73,32 @@ router.get('/searchFactums', function (req, res, next) {
   const titleParam = decodeURIComponent(query.title);
   const keywordsParam = decodeURIComponent(query.keywords);
 
-  /* TRANSFORM URI QUERY PARAMETERS INTO SQL STATEMENTS */
-  const authorQuery =
-    authorParam !== '' ? `MATCH(auteur) AGAINST('${authorParam}')` : '';
+  var baseQuery =
+    'SELECT fac.*, GROUP_CONCAT(ind.url) as urls FROM factums as fac LEFT JOIN index_fiches_total as ind ON (fac.cote=ind.cote) WHERE 1=1';
 
-  const titleQuery =
-    titleParam !== '' ? `MATCH(titre) AGAINST('${titleParam}')` : '';
+  const queryParams = [];
 
-  const keywordsQuery =
-    keywordsParam !== ''
-      ? `MATCH(fac.cote,type,auteur,titre,couverture,langue,edition,datation,contenu,etat,notes,emplacement) AGAINST ('${keywordsParam}')`
-      : '';
+  if (authorParam) {
+    baseQuery += ' AND MATCH(auteur) AGAINST(? IN BOOLEAN MODE)';
+    queryParams.push(authorParam);
+  }
 
-  /* I JOINED THE CONDITIONS TOGETHER FILTERING EMPTY ONES */
-  const joinedConditions = [authorQuery, titleQuery, keywordsQuery]
-    .filter((query) => query !== '')
-    .join(' AND ');
+  if (titleParam) {
+    baseQuery += ' AND MATCH(titre) AGAINST(? IN BOOLEAN MODE)';
+    queryParams.push(titleParam);
+  }
 
-  /* IF NO CONDITIONS AT ALL THEN THE CONDITION IS 1=1 */
-  const finalCondition = joinedConditions === '' ? '1=1' : joinedConditions;
-
-  const finalQuery = `SELECT fac.*, GROUP_CONCAT(ind.url) as urls 
-                      FROM factums as fac 
-                      LEFT JOIN index_fiches_total as ind 
-                      ON (fac.cote=ind.cote) 
-                      WHERE ${finalCondition} 
-                      GROUP BY 
-                        fac.id,
-                        fac.cote,
-                        fac.tome,
-                        fac.type,
-                        fac.auteur,
-                        fac.titre,
-                        fac.couverture,
-                        fac.langue,
-                        fac.edition,
-                        fac.datation,
-                        fac.contenu,
-                        fac.etat,
-                        fac.notes,
-                        fac.emplacement
-                        `;
+  if (keywordsParam) {
+    baseQuery +=
+      ' AND MATCH(fac.cote,type,auteur,titre,couverture,langue,edition,datation,contenu,etat,notes,emplacement) AGAINST (? IN BOOLEAN MODE)';
+    queryParams.push(keywordsParam);
+  }
+  const finalQuery =
+    baseQuery +
+    ' GROUP BY fac.id, fac.cote, fac.tome, fac.type, fac.auteur, fac.titre, fac.couverture, fac.langue, fac.edition, fac.datation, fac.contenu, fac.etat, fac.notes, fac.emplacement';
 
   /* QUERY THE DATABASE */
-  pool.query(finalQuery, function (error, results) {
+  pool.query(finalQuery, queryParams, function (error, results) {
     if (error) throw error;
     /* Transform the result into a JSON object to send */
     const json_response = results.map((res) => {
@@ -173,48 +133,32 @@ router.get('/searchFondsJohannique', function (req, res, next) {
   const titleParam = decodeURIComponent(query.title);
   const keywordsParam = decodeURIComponent(query.keywords);
 
-  /* TRANSFORM URI QUERY PARAMETERS INTO SQL STATEMENTS */
-  const authorQuery =
-    authorParam !== '' ? `MATCH(auteur) AGAINST('${authorParam}')` : '';
+  var baseQuery =
+    'SELECT fon.*, GROUP_CONCAT(ind.url) as urls FROM fonds_johannique as fon LEFT JOIN index_fiches_total as ind ON (fon.cote=ind.cote) WHERE 1=1';
 
-  const titleQuery =
-    titleParam !== '' ? `MATCH(titre) AGAINST('${titleParam}')` : '';
+  const queryParams = [];
 
-  const keywordsQuery =
-    keywordsParam !== ''
-      ? `MATCH(auteur,titre,annee,fon.cote,etat,metrage_ou_commentaire,carton) AGAINST ('${keywordsParam}')`
-      : '';
+  if (authorParam) {
+    baseQuery += ' AND MATCH(auteur) AGAINST(? IN BOOLEAN MODE)';
+    queryParams.push(authorParam);
+  }
 
-  /* I JOINED THE CONDITIONS TOGETHER FILTERING EMPTY ONES */
-  const joinedConditions = [authorQuery, titleQuery, keywordsQuery]
-    .filter((query) => query !== '')
-    .join(' AND ');
+  if (titleParam) {
+    baseQuery += ' AND MATCH(titre) AGAINST(? IN BOOLEAN MODE)';
+    queryParams.push(titleParam);
+  }
 
-  /* IF NO CONDITIONS AT ALL THEN THE CONDITION IS 1=1 */
-  const finalCondition = joinedConditions === '' ? '1=1' : joinedConditions;
-
-  const finalQuery = `SELECT fon.*, GROUP_CONCAT(ind.url) as urls 
-                      FROM fonds_johannique as fon 
-                      LEFT JOIN index_fiches_total as ind 
-                      ON (fon.cote=ind.cote) 
-                      WHERE ${finalCondition} 
-                      GROUP BY 
-                        fon.id,
-                        fon.epi,
-                        fon.travee,
-                        fon.tablette,
-                        fon.auteur,
-                        fon.titre,
-                        fon.annee,
-                        fon.cote,
-                        fon.tome,
-                        fon.etat,
-                        fon.metrage_ou_commentaire,
-                        fon.carton
-                        `;
+  if (keywordsParam) {
+    baseQuery +=
+      ' AND MATCH(auteur,titre,annee,fon.cote,etat,metrage_ou_commentaire,carton) AGAINST (? IN BOOLEAN MODE)';
+    queryParams.push(keywordsParam);
+  }
+  const finalQuery =
+    baseQuery +
+    ' GROUP BY fon.id, fon.epi, fon.travee, fon.tablette, fon.auteur, fon.titre, fon.annee, fon.cote, fon.tome, fon.etat, fon.metrage_ou_commentaire, fon.carton';
 
   /* QUERY THE DATABASE */
-  pool.query(finalQuery, function (error, results) {
+  pool.query(finalQuery, queryParams, function (error, results) {
     if (error) throw error;
     /* Transform the result into a JSON object to send */
     const json_response = results.map((res) => {
@@ -247,26 +191,29 @@ router.get('/searchFondsDocumentaire', function (req, res, next) {
   const titleParam = decodeURIComponent(query.title);
   const keywordsParam = decodeURIComponent(query.keywords);
 
-  const authorQuery = authorParam
-    ? `MATCH(auteur, auteur_bis) AGAINST('${authorParam}')`
-    : '';
+  var baseQuery = 'SELECT * FROM fonds_documentaire WHERE 1=1';
 
-  const titleQuery = titleParam ? `MATCH(titre) AGAINST('${titleParam}')` : '';
+  const queryParams = [];
 
-  const keywordsQuery = keywordsParam
-    ? `MATCH(n_carton,fonds,type_de_document,auteur,auteur_bis,titre,couverture,langue,edition,datation,contenu,etat,ancien_propietaire,notes,don,emplacement_initial_dans_la_bibliotheque) AGAINST ('${keywordsParam}')`
-    : '';
+  if (authorParam) {
+    baseQuery += ' AND MATCH(auteur) AGAINST(? IN BOOLEAN MODE)';
+    queryParams.push(authorParam);
+  }
 
-  const completeCondition = [authorQuery, titleQuery, keywordsQuery]
-    .filter((q) => q !== '')
-    .join(' AND ');
+  if (titleParam) {
+    baseQuery += ' AND MATCH(titre) AGAINST(? IN BOOLEAN MODE)';
+    queryParams.push(titleParam);
+  }
 
-  const finalQuery = `SELECT * FROM fonds_documentaire WHERE ${completeCondition}`;
-
-  console.log(finalQuery);
-
-  pool.query(finalQuery, function (error, results, fields) {
+  if (keywordsParam) {
+    baseQuery +=
+      ' AND MATCH(n_carton,fonds,type_de_document,auteur,auteur_bis,titre,couverture,langue,edition,datation,contenu,etat,ancien_propietaire,notes,don,emplacement_initial_dans_la_bibliotheque) AGAINST (? IN BOOLEAN MODE)';
+    queryParams.push(keywordsParam);
+  }
+  const finalQuery = baseQuery;
+  pool.query(finalQuery, queryParams, function (error, results, fields) {
     if (error) throw error;
+    // TODO handle the special case
     console.log('The solution is: ', results);
   });
 
