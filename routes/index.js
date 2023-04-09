@@ -6,20 +6,24 @@ const pool = require('../db/index');
 router.get('/searchImprimes', function (req, res, next) {
   /* GET URI QUERY PARAMETERS */
   const query = req.query;
-  const authorParam = query.author;
-  const titleParam = query.title;
-  const keywordsParam = query.keywords;
+  const authorParam = decodeURIComponent(query.author);
+  const titleParam = decodeURIComponent(query.title);
+  const keywordsParam = decodeURIComponent(query.keywords);
 
   /* TRANSFORM URI QUERY PARAMETERS INTO SQL STATEMENTS */
   const authorQuery =
-    authorParam !== '' ? `MATCH(auteur) AGAINST('${authorParam}')` : '';
+    authorParam !== ''
+      ? `MATCH(auteur) AGAINST('${authorParam}' IN BOOLEAN MODE)`
+      : '';
 
   const titleQuery =
-    titleParam !== '' ? `MATCH(titre) AGAINST('${titleParam}')` : '';
+    titleParam !== ''
+      ? `MATCH(titre) AGAINST('${titleParam}' IN BOOLEAN MODE)`
+      : '';
 
   const keywordsQuery =
     keywordsParam !== ''
-      ? `MATCH(imp.cote,lieu,format,auteur,titre,annee,etat,commentaire) AGAINST ('${keywordsParam}')`
+      ? `MATCH(imp.cote,lieu,format,auteur,titre,annee,etat,commentaire) AGAINST ('${keywordsParam}' IN BOOLEAN MODE)`
       : '';
 
   /* I JOINED THE CONDITIONS TOGETHER FILTERING EMPTY ONES */
@@ -30,7 +34,7 @@ router.get('/searchImprimes', function (req, res, next) {
   /* IF NO CONDITIONS AT ALL THEN THE CONDITION IS 1=1 */
   const finalCondition = joinedConditions === '' ? '1=1' : joinedConditions;
 
-  const finalQuery = `SELECT imp.*, GROUP_CONCAT(ind.url) as urls 
+  const finalQuery = `SELECT imp.*, GROUP_CONCAT(ind.url) as urls, ${finalCondition}  as score
                       FROM imprimes as imp 
                       LEFT JOIN index_fiches_total as ind 
                       ON (imp.cote=ind.cote) 
@@ -72,10 +76,13 @@ router.get('/searchImprimes', function (req, res, next) {
           tome: res.tome,
           etat: res.etat,
           commentaire: res.commentaire,
+          score: res.score,
         },
         urls: res.urls ? res.urls.split(',') : [],
       };
     });
+
+    console.log(finalQuery);
 
     res.json(json_response);
   });
@@ -84,9 +91,9 @@ router.get('/searchImprimes', function (req, res, next) {
 router.get('/searchFactums', function (req, res, next) {
   /* GET URI QUERY PARAMETERS */
   const query = req.query;
-  const authorParam = query.author;
-  const titleParam = query.title;
-  const keywordsParam = query.keywords;
+  const authorParam = decodeURIComponent(query.author);
+  const titleParam = decodeURIComponent(query.title);
+  const keywordsParam = decodeURIComponent(query.keywords);
 
   /* TRANSFORM URI QUERY PARAMETERS INTO SQL STATEMENTS */
   const authorQuery =
@@ -162,9 +169,9 @@ router.get('/searchFactums', function (req, res, next) {
 router.get('/searchFondsJohannique', function (req, res, next) {
   /* GET URI QUERY PARAMETERS */
   const query = req.query;
-  const authorParam = query.author;
-  const titleParam = query.title;
-  const keywordsParam = query.keywords;
+  const authorParam = decodeURIComponent(query.author);
+  const titleParam = decodeURIComponent(query.title);
+  const keywordsParam = decodeURIComponent(query.keywords);
 
   /* TRANSFORM URI QUERY PARAMETERS INTO SQL STATEMENTS */
   const authorQuery =
@@ -236,12 +243,9 @@ router.get('/searchFondsJohannique', function (req, res, next) {
 router.get('/searchFondsDocumentaire', function (req, res, next) {
   const query = req.query;
 
-  const authorParam = query.author;
-  const titleParam = query.title;
-  const keywordsParam = query.keywords;
-  console.log(authorParam);
-  console.log(titleParam);
-  console.log(keywordsParam);
+  const authorParam = decodeURIComponent(query.author);
+  const titleParam = decodeURIComponent(query.title);
+  const keywordsParam = decodeURIComponent(query.keywords);
 
   const authorQuery = authorParam
     ? `MATCH(auteur, auteur_bis) AGAINST('${authorParam}')`
