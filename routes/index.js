@@ -3,10 +3,15 @@ const router = express.Router();
 const pool = require('../db/index');
 
 // UTILS
-function hasTrailingDashOrPlusInWords(phrase) {
+function isInputInvalid(phrase) {
   const words = phrase.split(' ');
 
-  return words.some((word) => word.endsWith('-') || word.endsWith('+'));
+  const hasTrailingDashOrPlus = words.some(
+    (word) => word.endsWith('-') || word.endsWith('+')
+  );
+  const containsArobase = phrase.includes('@');
+
+  return hasTrailingDashOrPlus || containsArobase;
 }
 /* GET home page. */
 router.get('/searchImprimes', function (req, res, next) {
@@ -22,7 +27,7 @@ router.get('/searchImprimes', function (req, res, next) {
   const queryParams = [];
 
   if (authorParam) {
-    if (hasTrailingDashOrPlusInWords(authorParam)) {
+    if (isInputInvalid(authorParam)) {
       return res
         .status(400)
         .json({ err: 'No trailing dash allowed in words!' });
@@ -32,7 +37,7 @@ router.get('/searchImprimes', function (req, res, next) {
   }
 
   if (titleParam) {
-    if (hasTrailingDashOrPlusInWords(titleParam)) {
+    if (isInputInvalid(titleParam)) {
       return res
         .status(400)
         .json({ err: 'No trailing dash allowed in words!' });
@@ -42,7 +47,7 @@ router.get('/searchImprimes', function (req, res, next) {
   }
 
   if (keywordsParam) {
-    if (hasTrailingDashOrPlusInWords(keywordsParam)) {
+    if (isInputInvalid(keywordsParam)) {
       return res
         .status(400)
         .json({ err: 'No trailing dash allowed in words!' });
@@ -100,7 +105,7 @@ router.get('/searchFactums', function (req, res, next) {
   const queryParams = [];
 
   if (authorParam) {
-    if (hasTrailingDashOrPlusInWords(authorParam)) {
+    if (isInputInvalid(authorParam)) {
       return res
         .status(400)
         .json({ err: 'No trailing dash allowed in words!' });
@@ -110,7 +115,7 @@ router.get('/searchFactums', function (req, res, next) {
   }
 
   if (titleParam) {
-    if (hasTrailingDashOrPlusInWords(titleParam)) {
+    if (isInputInvalid(titleParam)) {
       return res
         .status(400)
         .json({ err: 'No trailing dash allowed in words!' });
@@ -120,7 +125,7 @@ router.get('/searchFactums', function (req, res, next) {
   }
 
   if (keywordsParam) {
-    if (hasTrailingDashOrPlusInWords(keywordsParam)) {
+    if (isInputInvalid(keywordsParam)) {
       return res
         .status(400)
         .json({ err: 'No trailing dash allowed in words!' });
@@ -175,7 +180,7 @@ router.get('/searchFondsJohannique', function (req, res, next) {
   const queryParams = [];
 
   if (authorParam) {
-    if (hasTrailingDashOrPlusInWords(authorParam)) {
+    if (isInputInvalid(authorParam)) {
       return res
         .status(400)
         .json({ err: 'No trailing dash allowed in words!' });
@@ -185,7 +190,7 @@ router.get('/searchFondsJohannique', function (req, res, next) {
   }
 
   if (titleParam) {
-    if (hasTrailingDashOrPlusInWords(titleParam)) {
+    if (isInputInvalid(titleParam)) {
       return res
         .status(400)
         .json({ err: 'No trailing dash allowed in words!' });
@@ -195,7 +200,7 @@ router.get('/searchFondsJohannique', function (req, res, next) {
   }
 
   if (keywordsParam) {
-    if (hasTrailingDashOrPlusInWords(keywordsParam)) {
+    if (isInputInvalid(keywordsParam)) {
       return res
         .status(400)
         .json({ err: 'No trailing dash allowed in words!' });
@@ -247,7 +252,7 @@ router.get('/searchFondsDocumentaire', function (req, res, next) {
   const queryParams = [];
 
   if (authorParam) {
-    if (hasTrailingDashOrPlusInWords(authorParam)) {
+    if (isInputInvalid(authorParam)) {
       return res
         .status(400)
         .json({ err: 'No trailing dash allowed in words!' });
@@ -257,7 +262,7 @@ router.get('/searchFondsDocumentaire', function (req, res, next) {
   }
 
   if (titleParam) {
-    if (hasTrailingDashOrPlusInWords(titleParam)) {
+    if (isInputInvalid(titleParam)) {
       return res
         .status(400)
         .json({ err: 'No trailing dash allowed in words!' });
@@ -267,7 +272,7 @@ router.get('/searchFondsDocumentaire', function (req, res, next) {
   }
 
   if (keywordsParam) {
-    if (hasTrailingDashOrPlusInWords(keywordsParam)) {
+    if (isInputInvalid(keywordsParam)) {
       return res
         .status(400)
         .json({ err: 'No trailing dash allowed in words!' });
