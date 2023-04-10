@@ -1,17 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db/index');
+const { auth } = require('mysql/lib/protocol/Auth');
 
 // UTILS
-function isInputInvalid(phrase) {
-  const words = phrase.split(' ');
-
-  const hasTrailingDashOrPlus = words.some(
-    (word) => word.endsWith('-') || word.endsWith('+')
-  );
-  const containsArobase = phrase.includes('@');
-
-  return hasTrailingDashOrPlus || containsArobase;
+function cleanParam(param) {
+  let cleaned_param = param.replace(/@/g, '');
+  cleaned_param = cleaned_param.replace(/[+-](\s|$)/g, '$1');
+  console.log(cleaned_param);
+  return cleaned_param;
 }
 
 const invalidInputResponse = (res) => {
@@ -36,32 +33,28 @@ router.get('/searchImprimes', function (req, res, next) {
   const queryParams = [];
 
   if (authorParam) {
-    if (isInputInvalid(authorParam)) {
-      return invalidInputResponse(res);
-    }
+    const cleanedAuthorParam = cleanParam(authorParam);
     baseQuery += ' AND MATCH(auteur) AGAINST(? IN BOOLEAN MODE)';
-    queryParams.push(authorParam);
+    queryParams.push(cleanedAuthorParam);
   }
 
   if (titleParam) {
-    if (isInputInvalid(titleParam)) {
-      return invalidInputResponse(res);
-    }
+    const cleanedTitleParam = cleanParam(titleParam);
     baseQuery += ' AND MATCH(titre) AGAINST(? IN BOOLEAN MODE)';
-    queryParams.push(titleParam);
+    queryParams.push(cleanedTitleParam);
   }
 
   if (keywordsParam) {
-    if (isInputInvalid(keywordsParam)) {
-      return invalidInputResponse(res);
-    }
+    const cleanedKeywordsParam = cleanParam(keywordsParam);
     baseQuery +=
       ' AND MATCH(imp.cote,lieu,format,auteur,titre,annee,etat,commentaire) AGAINST (? IN BOOLEAN MODE)';
-    queryParams.push(keywordsParam);
+    queryParams.push(cleanedKeywordsParam);
   }
   const finalQuery =
     baseQuery +
     ' GROUP BY imp.id, imp.epi, imp.travee, imp.tablette, imp.cote, imp.ordre, imp.lieu, imp.format, imp.auteur, imp.titre, imp.annee, imp.tome, imp.etat, imp.commentaire';
+
+  console.log(finalQuery);
 
   /* QUERY THE DATABASE */
   pool.query(finalQuery, queryParams, function (error, results) {
@@ -108,28 +101,22 @@ router.get('/searchFactums', function (req, res, next) {
   const queryParams = [];
 
   if (authorParam) {
-    if (isInputInvalid(authorParam)) {
-      return invalidInputResponse(res);
-    }
+    const cleanedAuthorParam = cleanParam(authorParam);
     baseQuery += ' AND MATCH(auteur) AGAINST(? IN BOOLEAN MODE)';
-    queryParams.push(authorParam);
+    queryParams.push(cleanedAuthorParam);
   }
 
   if (titleParam) {
-    if (isInputInvalid(titleParam)) {
-      return invalidInputResponse(res);
-    }
+    const cleanedTitleParam = cleanParam(titleParam);
     baseQuery += ' AND MATCH(titre) AGAINST(? IN BOOLEAN MODE)';
-    queryParams.push(titleParam);
+    queryParams.push(cleanedTitleParam);
   }
 
   if (keywordsParam) {
-    if (isInputInvalid(keywordsParam)) {
-      return invalidInputResponse(res);
-    }
+    const cleanedKeywordsParam = cleanParam(keywordsParam);
     baseQuery +=
       ' AND MATCH(fac.cote,type,auteur,titre,couverture,langue,edition,datation,contenu,etat,notes,emplacement) AGAINST (? IN BOOLEAN MODE)';
-    queryParams.push(keywordsParam);
+    queryParams.push(cleanedKeywordsParam);
   }
   const finalQuery =
     baseQuery +
@@ -177,28 +164,22 @@ router.get('/searchFondsJohannique', function (req, res, next) {
   const queryParams = [];
 
   if (authorParam) {
-    if (isInputInvalid(authorParam)) {
-      return invalidInputResponse(res);
-    }
+    const cleanedAuthorParam = cleanParam(authorParam);
     baseQuery += ' AND MATCH(auteur) AGAINST(? IN BOOLEAN MODE)';
-    queryParams.push(authorParam);
+    queryParams.push(cleanedAuthorParam);
   }
 
   if (titleParam) {
-    if (isInputInvalid(titleParam)) {
-      return invalidInputResponse(res);
-    }
+    const cleanedTitleParam = cleanParam(titleParam);
     baseQuery += ' AND MATCH(titre) AGAINST(? IN BOOLEAN MODE)';
-    queryParams.push(titleParam);
+    queryParams.push(cleanedTitleParam);
   }
 
   if (keywordsParam) {
-    if (isInputInvalid(keywordsParam)) {
-      return invalidInputResponse(res);
-    }
+    const cleanedKeywordsParam = cleanParam(keywordsParam);
     baseQuery +=
       ' AND MATCH(auteur,titre,annee,fon.cote,etat,metrage_ou_commentaire,carton) AGAINST (? IN BOOLEAN MODE)';
-    queryParams.push(keywordsParam);
+    queryParams.push(cleanedKeywordsParam);
   }
   const finalQuery =
     baseQuery +
@@ -243,29 +224,22 @@ router.get('/searchFondsDocumentaire', function (req, res, next) {
   const queryParams = [];
 
   if (authorParam) {
-    if (isInputInvalid(authorParam)) {
-      return invalidInputResponse(res);
-    }
+    const cleanedAuthorParam = cleanParam(authorParam);
     baseQuery += ' AND MATCH(auteur) AGAINST(? IN BOOLEAN MODE)';
-    queryParams.push(authorParam);
+    queryParams.push(cleanedAuthorParam);
   }
 
   if (titleParam) {
-    if (isInputInvalid(titleParam)) {
-      return invalidInputResponse(res);
-    }
+    const cleanedTitleParam = cleanParam(titleParam);
     baseQuery += ' AND MATCH(titre) AGAINST(? IN BOOLEAN MODE)';
-    queryParams.push(titleParam);
+    queryParams.push(cleanedTitleParam);
   }
 
   if (keywordsParam) {
-    if (isInputInvalid(keywordsParam)) {
-      return invalidInputResponse(res);
-      œ;
-    }
+    const cleanedKeywordsParam = cleanParam(keywordsParam);
     baseQuery +=
       ' AND MATCH(n_carton,fonds,type_de_document,auteur,auteur_bis,titre,couverture,langue,edition,datation,contenu,etat,ancien_propietaire,notes,don,emplacement_initial_dans_la_bibliotheque) AGAINST (? IN BOOLEAN MODE)';
-    queryParams.push(keywordsParam);
+    queryParams.push(cleanedKeywordsParam);
   }
   const finalQuery = baseQuery;
   pool.query(finalQuery, queryParams, function (error, results, fields) {
