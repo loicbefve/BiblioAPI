@@ -1,8 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db/index');
-const { auth } = require('mysql/lib/protocol/Auth');
-
 // UTILS
 function cleanParam(param) {
   let cleaned_param = param.replace(/@/g, '');
@@ -10,14 +8,6 @@ function cleanParam(param) {
   console.log(cleaned_param);
   return cleaned_param;
 }
-
-const invalidInputResponse = (res) => {
-  res
-    .status(400)
-    .send(
-      "L'un des mots recherchés contient un '-' ou un '+' à la fin ou bien un arobase n'importe où."
-    );
-};
 
 /* GET home page. */
 router.get('/searchImprimes', function (req, res, next) {
@@ -225,7 +215,7 @@ router.get('/searchFondsDocumentaire', function (req, res, next) {
 
   if (authorParam) {
     const cleanedAuthorParam = cleanParam(authorParam);
-    baseQuery += ' AND MATCH(auteur) AGAINST(? IN BOOLEAN MODE)';
+    baseQuery += ' AND MATCH(auteur,auteur_bis) AGAINST(? IN BOOLEAN MODE)';
     queryParams.push(cleanedAuthorParam);
   }
 
@@ -241,14 +231,39 @@ router.get('/searchFondsDocumentaire', function (req, res, next) {
       ' AND MATCH(n_carton,fonds,type_de_document,auteur,auteur_bis,titre,couverture,langue,edition,datation,contenu,etat,ancien_propietaire,notes,don,emplacement_initial_dans_la_bibliotheque) AGAINST (? IN BOOLEAN MODE)';
     queryParams.push(cleanedKeywordsParam);
   }
+
   const finalQuery = baseQuery;
+
   pool.query(finalQuery, queryParams, function (error, results, fields) {
     if (error) throw error;
-    // TODO handle the special case
-    console.log('The solution is: ', results);
-  });
 
-  res.render('index', { title: 'Express' });
+    const json_response = results.map((res) => {
+      return {
+        metadatas: {
+          carton: res.n_carton,
+          fonds: res.fonds,
+          type_de_document: res.type_de_document,
+          auteur: res.auteur,
+          auteur_bis: res.auteur_bis,
+          titre: res.titre,
+          couverture: res.couverture,
+          langue: res.langue,
+          edition: res.edition,
+          datation: res.datation,
+          contenu: res.contenu,
+          etat: res.etat,
+          ancien_proprietaire: res.ancien_proprietaire,
+          notes: res.notes,
+          don: res.don,
+          emplacement_initiale_dans_la_bibliotheque:
+            res.emplacement_initiale_dans_la_bibliotheque,
+        },
+        urls: [],
+      };
+    });
+
+    res.json(json_response);
+  });
 });
 
 module.exports = router;
