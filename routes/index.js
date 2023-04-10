@@ -15,11 +15,11 @@ function isInputInvalid(phrase) {
 }
 
 const invalidInputResponse = (res) => {
-  res.status(400).json({
-    error_text:
-      "L'un des mots recherchés contient un '-' ou un '+' à la fin ou bien un arobase n'importe où.",
-    error_code: 'api.invalid_input',
-  });
+  res
+    .status(400)
+    .send(
+      "L'un des mots recherchés contient un '-' ou un '+' à la fin ou bien un arobase n'importe où."
+    );
 };
 
 /* GET home page. */
@@ -261,6 +261,7 @@ router.get('/searchFondsDocumentaire', function (req, res, next) {
   if (keywordsParam) {
     if (isInputInvalid(keywordsParam)) {
       return invalidInputResponse(res);
+      œ;
     }
     baseQuery +=
       ' AND MATCH(n_carton,fonds,type_de_document,auteur,auteur_bis,titre,couverture,langue,edition,datation,contenu,etat,ancien_propietaire,notes,don,emplacement_initial_dans_la_bibliotheque) AGAINST (? IN BOOLEAN MODE)';
