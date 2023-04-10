@@ -13,6 +13,15 @@ function isInputInvalid(phrase) {
 
   return hasTrailingDashOrPlus || containsArobase;
 }
+
+const invalidInputResponse = (res) => {
+  res.status(400).json({
+    error_text:
+      "L'un des mots recherchés contient un '-' ou un '+' à la fin ou bien un arobase n'importe où.",
+    error_code: 'api.invalid_input',
+  });
+};
+
 /* GET home page. */
 router.get('/searchImprimes', function (req, res, next) {
   /* GET URI QUERY PARAMETERS */
@@ -28,9 +37,7 @@ router.get('/searchImprimes', function (req, res, next) {
 
   if (authorParam) {
     if (isInputInvalid(authorParam)) {
-      return res
-        .status(400)
-        .json({ err: 'No trailing dash allowed in words!' });
+      return invalidInputResponse(res);
     }
     baseQuery += ' AND MATCH(auteur) AGAINST(? IN BOOLEAN MODE)';
     queryParams.push(authorParam);
@@ -38,9 +45,7 @@ router.get('/searchImprimes', function (req, res, next) {
 
   if (titleParam) {
     if (isInputInvalid(titleParam)) {
-      return res
-        .status(400)
-        .json({ err: 'No trailing dash allowed in words!' });
+      return invalidInputResponse(res);
     }
     baseQuery += ' AND MATCH(titre) AGAINST(? IN BOOLEAN MODE)';
     queryParams.push(titleParam);
@@ -48,9 +53,7 @@ router.get('/searchImprimes', function (req, res, next) {
 
   if (keywordsParam) {
     if (isInputInvalid(keywordsParam)) {
-      return res
-        .status(400)
-        .json({ err: 'No trailing dash allowed in words!' });
+      return invalidInputResponse(res);
     }
     baseQuery +=
       ' AND MATCH(imp.cote,lieu,format,auteur,titre,annee,etat,commentaire) AGAINST (? IN BOOLEAN MODE)';
@@ -106,9 +109,7 @@ router.get('/searchFactums', function (req, res, next) {
 
   if (authorParam) {
     if (isInputInvalid(authorParam)) {
-      return res
-        .status(400)
-        .json({ err: 'No trailing dash allowed in words!' });
+      return invalidInputResponse(res);
     }
     baseQuery += ' AND MATCH(auteur) AGAINST(? IN BOOLEAN MODE)';
     queryParams.push(authorParam);
@@ -116,9 +117,7 @@ router.get('/searchFactums', function (req, res, next) {
 
   if (titleParam) {
     if (isInputInvalid(titleParam)) {
-      return res
-        .status(400)
-        .json({ err: 'No trailing dash allowed in words!' });
+      return invalidInputResponse(res);
     }
     baseQuery += ' AND MATCH(titre) AGAINST(? IN BOOLEAN MODE)';
     queryParams.push(titleParam);
@@ -126,9 +125,7 @@ router.get('/searchFactums', function (req, res, next) {
 
   if (keywordsParam) {
     if (isInputInvalid(keywordsParam)) {
-      return res
-        .status(400)
-        .json({ err: 'No trailing dash allowed in words!' });
+      return invalidInputResponse(res);
     }
     baseQuery +=
       ' AND MATCH(fac.cote,type,auteur,titre,couverture,langue,edition,datation,contenu,etat,notes,emplacement) AGAINST (? IN BOOLEAN MODE)';
@@ -181,9 +178,7 @@ router.get('/searchFondsJohannique', function (req, res, next) {
 
   if (authorParam) {
     if (isInputInvalid(authorParam)) {
-      return res
-        .status(400)
-        .json({ err: 'No trailing dash allowed in words!' });
+      return invalidInputResponse(res);
     }
     baseQuery += ' AND MATCH(auteur) AGAINST(? IN BOOLEAN MODE)';
     queryParams.push(authorParam);
@@ -191,9 +186,7 @@ router.get('/searchFondsJohannique', function (req, res, next) {
 
   if (titleParam) {
     if (isInputInvalid(titleParam)) {
-      return res
-        .status(400)
-        .json({ err: 'No trailing dash allowed in words!' });
+      return invalidInputResponse(res);
     }
     baseQuery += ' AND MATCH(titre) AGAINST(? IN BOOLEAN MODE)';
     queryParams.push(titleParam);
@@ -201,9 +194,7 @@ router.get('/searchFondsJohannique', function (req, res, next) {
 
   if (keywordsParam) {
     if (isInputInvalid(keywordsParam)) {
-      return res
-        .status(400)
-        .json({ err: 'No trailing dash allowed in words!' });
+      return invalidInputResponse(res);
     }
     baseQuery +=
       ' AND MATCH(auteur,titre,annee,fon.cote,etat,metrage_ou_commentaire,carton) AGAINST (? IN BOOLEAN MODE)';
@@ -253,9 +244,7 @@ router.get('/searchFondsDocumentaire', function (req, res, next) {
 
   if (authorParam) {
     if (isInputInvalid(authorParam)) {
-      return res
-        .status(400)
-        .json({ err: 'No trailing dash allowed in words!' });
+      return invalidInputResponse(res);
     }
     baseQuery += ' AND MATCH(auteur) AGAINST(? IN BOOLEAN MODE)';
     queryParams.push(authorParam);
@@ -263,9 +252,7 @@ router.get('/searchFondsDocumentaire', function (req, res, next) {
 
   if (titleParam) {
     if (isInputInvalid(titleParam)) {
-      return res
-        .status(400)
-        .json({ err: 'No trailing dash allowed in words!' });
+      return invalidInputResponse(res);
     }
     baseQuery += ' AND MATCH(titre) AGAINST(? IN BOOLEAN MODE)';
     queryParams.push(titleParam);
@@ -273,9 +260,7 @@ router.get('/searchFondsDocumentaire', function (req, res, next) {
 
   if (keywordsParam) {
     if (isInputInvalid(keywordsParam)) {
-      return res
-        .status(400)
-        .json({ err: 'No trailing dash allowed in words!' });
+      return invalidInputResponse(res);
     }
     baseQuery +=
       ' AND MATCH(n_carton,fonds,type_de_document,auteur,auteur_bis,titre,couverture,langue,edition,datation,contenu,etat,ancien_propietaire,notes,don,emplacement_initial_dans_la_bibliotheque) AGAINST (? IN BOOLEAN MODE)';
