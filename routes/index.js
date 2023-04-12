@@ -266,4 +266,67 @@ router.get('/searchFondsDocumentaire', function (req, res, next) {
   });
 });
 
+router.get('/searchManuscrits', function (req, res, next) {
+  const query = req.query;
+
+  const keywordsParam = decodeURIComponent(query.keywords);
+
+  var baseQuery = 'SELECT * FROM manuscrits WHERE 1=1';
+
+  const queryParams = [];
+
+  if (keywordsParam) {
+    const cleanedKeywordsParam = cleanParam(keywordsParam);
+    baseQuery += ' AND MATCH(commentaires) AGAINST (? IN BOOLEAN MODE)';
+    queryParams.push(cleanedKeywordsParam);
+  }
+
+  const finalQuery = baseQuery;
+
+  pool.query(finalQuery, queryParams, function (error, results, fields) {
+    if (error) throw error;
+
+    const json_response = results.map((res) => {
+      return {
+        metadatas: {
+          commentaires: res.commentaires,
+        },
+      };
+    });
+
+    res.json(json_response);
+  });
+});
+router.get('/searchIndexPaysLorrain', function (req, res, next) {
+  const query = req.query;
+
+  const keywordsParam = decodeURIComponent(query.keywords);
+
+  var baseQuery = 'SELECT * FROM index_pays_lorrain WHERE 1=1';
+
+  const queryParams = [];
+
+  if (keywordsParam) {
+    const cleanedKeywordsParam = cleanParam(keywordsParam);
+    baseQuery += ' AND MATCH(commentaires) AGAINST (? IN BOOLEAN MODE)';
+    queryParams.push(cleanedKeywordsParam);
+  }
+
+  const finalQuery = baseQuery;
+
+  pool.query(finalQuery, queryParams, function (error, results, fields) {
+    if (error) throw error;
+
+    const json_response = results.map((res) => {
+      return {
+        metadatas: {
+          commentaires: res.commentaires,
+        },
+      };
+    });
+
+    res.json(json_response);
+  });
+});
+
 module.exports = router;
