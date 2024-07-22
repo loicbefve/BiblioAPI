@@ -1,16 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db/index');
+const db = require('../db/index');
+
 // UTILS
 function cleanParam(param) {
   let cleaned_param = param.replace(/@/g, '');
   cleaned_param = cleaned_param.replace(/[+-](\s|$)/g, '$1');
-  console.log(cleaned_param);
   return cleaned_param;
 }
 
 /* GET home page. */
-router.get('/searchImprimes', function (req, res, next) {
+router.get('/searchImprimes', async function(req, res, next) {
   /* GET URI QUERY PARAMETERS */
   const query = req.query;
   const authorParam = decodeURIComponent(query.author);
@@ -18,67 +18,77 @@ router.get('/searchImprimes', function (req, res, next) {
   const keywordsParam = decodeURIComponent(query.keywords);
 
   var baseQuery =
-    'SELECT imp.*, GROUP_CONCAT(ind.url) as urls FROM imprimes as imp LEFT JOIN index_fiches_total as ind ON (imp.cote=ind.cote) WHERE 1=1';
+    `SELECT imp.*, STRING_AGG(ind.url, ',') as urls
+     FROM imprimes as imp
+              LEFT JOIN index_fiches_total as ind
+                        ON (imp.cote = ind.cote)
+     WHERE 1 = 1`;
 
   const queryParams = [];
+  const tsQueryConditions = [];
 
   if (authorParam) {
     const cleanedAuthorParam = cleanParam(authorParam);
-    baseQuery += ' AND MATCH(auteur) AGAINST(? IN BOOLEAN MODE)';
+    tsQueryConditions.push(`tsvector_auteur @@ to_tsquery('french', $${queryParams.length + 1})`);
     queryParams.push(cleanedAuthorParam);
   }
 
   if (titleParam) {
     const cleanedTitleParam = cleanParam(titleParam);
-    baseQuery += ' AND MATCH(titre) AGAINST(? IN BOOLEAN MODE)';
+    tsQueryConditions.push(`tsvector_titre @@ to_tsquery('french', $${queryParams.length + 1})`);
     queryParams.push(cleanedTitleParam);
   }
 
   if (keywordsParam) {
     const cleanedKeywordsParam = cleanParam(keywordsParam);
-    baseQuery +=
-      ' AND MATCH(imp.cote,lieu,format,auteur,titre,annee,etat,commentaire) AGAINST (? IN BOOLEAN MODE)';
+    tsQueryConditions.push(`tsvector_combined @@ to_tsquery('french', $${queryParams.length + 1})`);
     queryParams.push(cleanedKeywordsParam);
   }
+
+  if (tsQueryConditions.length > 0) {
+    baseQuery += ` AND (${tsQueryConditions.join(' OR ')})`;
+  }
+
   const finalQuery =
     baseQuery +
     ' GROUP BY imp.id, imp.epi, imp.travee, imp.tablette, imp.cote, imp.ordre, imp.lieu, imp.format, imp.auteur, imp.titre, imp.annee, imp.tome, imp.etat, imp.commentaire';
 
-  console.log(finalQuery);
 
   /* QUERY THE DATABASE */
-  pool.query(finalQuery, queryParams, function (error, results) {
-    if (error) throw error;
-    /* Transform the result into a JSON object to send */
-    const json_response = results.map((res) => {
-      return {
-        metadatas: {
-          epi: res.epi,
-          travee: res.travee,
-          tablette: res.tablette,
-          cote: res.cote,
-          ordre: res.ordre,
-          lieu: res.lieu,
-          format: res.format,
-          auteur: res.auteur,
-          titre: res.titre,
-          annee: res.annee,
-          tome: res.tome,
-          etat: res.etat,
-          commentaire: res.commentaire,
-          score: res.score,
-        },
-        urls: res.urls ? res.urls.split(',') : [],
-      };
-    });
-
-    console.log(finalQuery);
-
-    res.json(json_response);
+  const result = await db.query(finalQuery, queryParams)
+  /* Transform the result into a JSON object to send */
+  const json_response = results.map((res) => {
+    return {
+      metadatas: {
+        epi: res.epi,
+        travee: res.travee,
+        tablette: res.tablette,
+        cote: res.cote,
+        ordre: res.ordre,
+        lieu: res.lieu,
+        format: res.format,
+        auteur: res.auteur,
+        titre: res.titre,
+        annee: res.annee,
+        tome: res.tome,
+        etat: res.etat,
+        commentaire: res.commentaire,
+        score: res.score
+      },
+      urls: res.urls ? res.urls.split(',') : []
+    };
   });
+
+  console.log(finalQuery);
+
+  res.json(json_response);
+
+      console.error('Failed querying the DB for searchImprimes',error);
+      res.status(500).json({ error: 'Internal server error' });
+
 });
 
-router.get('/searchFactums', function (req, res, next) {
+router.get('/searchFactums', function(req, res, next) {
   /* GET URI QUERY PARAMETERS */
   const query = req.query;
   const authorParam = decodeURIComponent(query.author);
@@ -86,7 +96,7 @@ router.get('/searchFactums', function (req, res, next) {
   const keywordsParam = decodeURIComponent(query.keywords);
 
   var baseQuery =
-    'SELECT fac.*, GROUP_CONCAT(ind.url) as urls FROM factums as fac LEFT JOIN index_fiches_total as ind ON (fac.cote=ind.cote) WHERE 1=1';
+    'SELECT fac.*, STRING_AGG(ind.url, \',\') as urls FROM factums as fac LEFT JOIN index_fiches_total as ind ON (fac.cote=ind.cote) WHERE 1=1';
 
   const queryParams = [];
 
@@ -113,35 +123,39 @@ router.get('/searchFactums', function (req, res, next) {
     ' GROUP BY fac.id, fac.cote, fac.tome, fac.type, fac.auteur, fac.titre, fac.couverture, fac.langue, fac.edition, fac.datation, fac.contenu, fac.etat, fac.notes, fac.emplacement';
 
   /* QUERY THE DATABASE */
-  pool.query(finalQuery, queryParams, function (error, results) {
-    if (error) throw error;
-    /* Transform the result into a JSON object to send */
-    const json_response = results.map((res) => {
-      return {
-        metadatas: {
-          cote: res.cote,
-          tome: res.tome,
-          type: res.type,
-          auteur: res.auteur,
-          titre: res.titre,
-          couverture: res.couverture,
-          langue: res.langue,
-          edition: res.edition,
-          datation: res.datation,
-          contenu: res.contenu,
-          etat: res.etat,
-          notes: res.notes,
-          emplacement: res.emplacement,
-        },
-        urls: res.urls ? res.urls.split(',') : [],
-      };
-    });
+  db.query(finalQuery, queryParams)
+    .then((results) => {
+      /* Transform the result into a JSON object to send */
+      const json_response = results.map((res) => {
+        return {
+          metadatas: {
+            cote: res.cote,
+            tome: res.tome,
+            type: res.type,
+            auteur: res.auteur,
+            titre: res.titre,
+            couverture: res.couverture,
+            langue: res.langue,
+            edition: res.edition,
+            datation: res.datation,
+            contenu: res.contenu,
+            etat: res.etat,
+            notes: res.notes,
+            emplacement: res.emplacement
+          },
+          urls: res.urls ? res.urls.split(',') : []
+        };
+      });
 
-    res.json(json_response);
-  });
+      res.json(json_response);
+    })
+    .catch((error) => {
+      console.error('Failed querying the DB for searchFactums',error);
+      res.status(500).json({ error: 'Internal server error' });
+    });
 });
 
-router.get('/searchFondsJohannique', function (req, res, next) {
+router.get('/searchFondsJohannique', function(req, res, next) {
   /* GET URI QUERY PARAMETERS */
   const query = req.query;
   const authorParam = decodeURIComponent(query.author);
@@ -149,7 +163,7 @@ router.get('/searchFondsJohannique', function (req, res, next) {
   const keywordsParam = decodeURIComponent(query.keywords);
 
   var baseQuery =
-    'SELECT fon.*, GROUP_CONCAT(ind.url) as urls FROM fonds_johannique as fon LEFT JOIN index_fiches_total as ind ON (fon.cote=ind.cote) WHERE 1=1';
+    'SELECT fon.*, STRING_AGG(ind.url, \',\') as urls FROM fonds_johannique as fon LEFT JOIN index_fiches_total as ind ON (fon.cote=ind.cote) WHERE 1=1';
 
   const queryParams = [];
 
@@ -176,33 +190,37 @@ router.get('/searchFondsJohannique', function (req, res, next) {
     ' GROUP BY fon.id, fon.epi, fon.travee, fon.tablette, fon.auteur, fon.titre, fon.annee, fon.cote, fon.tome, fon.etat, fon.metrage_ou_commentaire, fon.carton';
 
   /* QUERY THE DATABASE */
-  pool.query(finalQuery, queryParams, function (error, results) {
-    if (error) throw error;
-    /* Transform the result into a JSON object to send */
-    const json_response = results.map((res) => {
-      return {
-        metadatas: {
-          epi: res.epi,
-          travee: res.travee,
-          tablette: res.tablette,
-          auteur: res.auteur,
-          titre: res.titre,
-          annee: res.annee,
-          cote: res.cote,
-          tome: res.tome,
-          etat: res.etat,
-          metrage_ou_commentaire: res.metrage_ou_commentaire,
-          carton: res.carton,
-        },
-        urls: res.urls ? res.urls.split(',') : [],
-      };
-    });
+  db.query(finalQuery, queryParams)
+    .then((results) => {
+      /* Transform the result into a JSON object to send */
+      const json_response = results.map((res) => {
+        return {
+          metadatas: {
+            epi: res.epi,
+            travee: res.travee,
+            tablette: res.tablette,
+            auteur: res.auteur,
+            titre: res.titre,
+            annee: res.annee,
+            cote: res.cote,
+            tome: res.tome,
+            etat: res.etat,
+            metrage_ou_commentaire: res.metrage_ou_commentaire,
+            carton: res.carton
+          },
+          urls: res.urls ? res.urls.split(',') : []
+        };
+      });
 
-    res.json(json_response);
-  });
+      res.json(json_response);
+    })
+    .catch((error) => {
+      console.error('Failed querying the DB for searchFondsJohannique',error);
+      res.status(500).json({ error: 'Internal server error' });
+    });
 });
 
-router.get('/searchFondsDocumentaire', function (req, res, next) {
+router.get('/searchFondsDocumentaire', function(req, res, next) {
   const query = req.query;
 
   const authorParam = decodeURIComponent(query.author);
@@ -234,39 +252,42 @@ router.get('/searchFondsDocumentaire', function (req, res, next) {
 
   const finalQuery = baseQuery;
 
-  pool.query(finalQuery, queryParams, function (error, results, fields) {
-    if (error) throw error;
+  db.query(finalQuery, queryParams)
+    .then((results) => {
+      const json_response = results.map((res) => {
+        return {
+          metadatas: {
+            carton: res.n_carton,
+            fonds: res.fonds,
+            type_de_document: res.type_de_document,
+            auteur: res.auteur,
+            auteur_bis: res.auteur_bis,
+            titre: res.titre,
+            couverture: res.couverture,
+            langue: res.langue,
+            edition: res.edition,
+            datation: res.datation,
+            contenu: res.contenu,
+            etat: res.etat,
+            ancien_proprietaire: res.ancien_proprietaire,
+            notes: res.notes,
+            don: res.don,
+            emplacement_initiale_dans_la_bibliotheque:
+            res.emplacement_initiale_dans_la_bibliotheque
+          },
+          urls: []
+        };
+      });
 
-    const json_response = results.map((res) => {
-      return {
-        metadatas: {
-          carton: res.n_carton,
-          fonds: res.fonds,
-          type_de_document: res.type_de_document,
-          auteur: res.auteur,
-          auteur_bis: res.auteur_bis,
-          titre: res.titre,
-          couverture: res.couverture,
-          langue: res.langue,
-          edition: res.edition,
-          datation: res.datation,
-          contenu: res.contenu,
-          etat: res.etat,
-          ancien_proprietaire: res.ancien_proprietaire,
-          notes: res.notes,
-          don: res.don,
-          emplacement_initiale_dans_la_bibliotheque:
-            res.emplacement_initiale_dans_la_bibliotheque,
-        },
-        urls: [],
-      };
+      res.json(json_response);
+    })
+    .catch((error) => {
+      console.error('Failed querying the DB for searchFondsDocumentaire',error);
+      res.status(500).json({ error: 'Internal server error' });
     });
-
-    res.json(json_response);
-  });
 });
 
-router.get('/searchManuscrits', function (req, res, next) {
+router.get('/searchManuscrits', function(req, res, next) {
   const query = req.query;
 
   const keywordsParam = decodeURIComponent(query.keywords);
@@ -283,21 +304,26 @@ router.get('/searchManuscrits', function (req, res, next) {
 
   const finalQuery = baseQuery;
 
-  pool.query(finalQuery, queryParams, function (error, results, fields) {
-    if (error) throw error;
+  db.query(finalQuery, queryParams)
+    .then((results) => {
+      if (error) throw error;
 
-    const json_response = results.map((res) => {
-      return {
-        metadatas: {
-          commentaires: res.commentaires,
-        },
-      };
+      const json_response = results.map((res) => {
+        return {
+          metadatas: {
+            commentaires: res.commentaires
+          }
+        };
+      });
+
+      res.json(json_response);
+    })
+    .catch((error) => {
+      console.error('Failed querying the DB for searchManuscrits',error);
+      res.status(500).json({ error: 'Internal server error' });
     });
-
-    res.json(json_response);
-  });
 });
-router.get('/searchIndexPaysLorrain', function (req, res, next) {
+router.get('/searchIndexPaysLorrain', function(req, res, next) {
   const query = req.query;
 
   const keywordsParam = decodeURIComponent(query.keywords);
@@ -314,19 +340,23 @@ router.get('/searchIndexPaysLorrain', function (req, res, next) {
 
   const finalQuery = baseQuery;
 
-  pool.query(finalQuery, queryParams, function (error, results, fields) {
-    if (error) throw error;
+  db.query(finalQuery, queryParams)
+    .then((results) => {
 
-    const json_response = results.map((res) => {
-      return {
-        metadatas: {
-          commentaires: res.commentaires,
-        },
-      };
+      const json_response = results.map((res) => {
+        return {
+          metadatas: {
+            commentaires: res.commentaires
+          }
+        };
+      });
+
+      res.json(json_response);
+    })
+    .catch((error) => {
+      console.error('Failed querying the DB for searchIndexPaysLorrain',error);
+      res.status(500).json({ error: 'Internal server error' });
     });
-
-    res.json(json_response);
-  });
 });
 
 module.exports = router;

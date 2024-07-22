@@ -1,14 +1,10 @@
-const mysql = require('mysql');
+const pg = require('pg');
 const config = require('../config/dbConfig');
+const { Pool } = require('pg');
 
-const pool = mysql.createPool({
-  host: config.host,
-  user: config.user,
-  password: config.password,
-  database: config.database,
-  connectionLimit: config.maxConnections,
-  multipleStatements: false,
-});
+const pool = new Pool(config);
 
-// Export the pool object to use in other parts of your application
-module.exports = pool;
+// Export the pool object to use in other parts of the application
+module.exports = {
+  query: (text, params) => pool.query(text, params)
+};

@@ -1,5 +1,6 @@
+DROP TABLE IF EXISTS imprimes;
 CREATE TABLE imprimes (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id uuid PRIMARY KEY,
   epi TEXT,
   travee TEXT,
   tablette TEXT,
@@ -12,11 +13,38 @@ CREATE TABLE imprimes (
   annee TEXT,
   tome TEXT,
   etat TEXT,
-  commentaire TEXT
+  commentaire TEXT,
+  tsvector_titre TSVECTOR,
+  tsvector_auteur TSVECTOR,
+  tsvector_combined TSVECTOR
 );
 
+DROP FUNCTION IF EXISTS update_tsvector_imprimes() CASCADE;
+CREATE FUNCTION update_tsvector_imprimes() RETURNS TRIGGER AS $$
+BEGIN
+    NEW.tsvector_titre := setweight(to_tsvector('french', NEW.titre), 'A');
+    NEW.tsvector_auteur := setweight(to_tsvector('french', NEW.auteur), 'A');
+    NEW.tsvector_combined :=
+            setweight(to_tsvector('french', NEW.titre), 'A') ||
+            setweight(to_tsvector('french', NEW.auteur), 'A') ||
+            setweight(to_tsvector('french', NEW.lieu), 'B') ||
+            setweight(to_tsvector('french', NEW.annee), 'B') ||
+            setweight(to_tsvector('french', NEW.commentaire), 'C') ||
+            setweight(to_tsvector('french', NEW.cote), 'D') ||
+            setweight(to_tsvector('french', NEW.format), 'D') ||
+            setweight(to_tsvector('french', NEW.etat), 'D');
+    RETURN NEW;
+END
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tsvectorupdateimprimee BEFORE INSERT OR UPDATE
+    ON imprimes FOR EACH ROW EXECUTE FUNCTION update_tsvector_imprimes();
+
+
+
+DROP TABLE IF EXISTS factums;
 CREATE TABLE factums (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id uuid PRIMARY KEY,
   cote VARCHAR(20),
   tome TEXT,
   type TEXT,
@@ -29,11 +57,42 @@ CREATE TABLE factums (
   contenu TEXT,
   etat TEXT,
   notes TEXT,
-  emplacement TEXT
+  emplacement TEXT,
+  tsvector_titre TSVECTOR,
+  tsvector_auteur TSVECTOR,
+  tsvector_combined TSVECTOR
 );
 
+DROP FUNCTION IF EXISTS update_tsvector_factums() CASCADE;
+CREATE FUNCTION update_tsvector_factums() RETURNS TRIGGER AS $$
+BEGIN
+    NEW.tsvector_titre := setweight(to_tsvector('french', NEW.titre), 'A');
+    NEW.tsvector_auteur := setweight(to_tsvector('french', NEW.auteur), 'A');
+    NEW.tsvector_combined :=
+            setweight(to_tsvector('french', NEW.titre), 'A') ||
+            setweight(to_tsvector('french', NEW.auteur), 'A') ||
+            setweight(to_tsvector('french', NEW.contenu), 'B') ||
+            setweight(to_tsvector('french', NEW.datation), 'B') ||
+            setweight(to_tsvector('french', NEW.notes), 'C') ||
+            setweight(to_tsvector('french', NEW.langue), 'C') ||
+            setweight(to_tsvector('french', NEW.type), 'C') ||
+            setweight(to_tsvector('french', NEW.cote), 'D') ||
+            setweight(to_tsvector('french', NEW.format), 'D') ||
+            setweight(to_tsvector('french', NEW.couverture), 'D') ||
+            setweight(to_tsvector('french', NEW.edition), 'D') ||
+            setweight(to_tsvector('french', NEW.emplacement), 'D') ||
+            setweight(to_tsvector('french', NEW.etat), 'D');
+    RETURN NEW;
+END
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tsvectorupdatefactums BEFORE INSERT OR UPDATE
+    ON factums FOR EACH ROW EXECUTE FUNCTION update_tsvector_factums();
+
+
+DROP TABLE IF EXISTS fonds_documentaire;
 CREATE TABLE fonds_documentaire (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id uuid PRIMARY KEY,
   n_carton TEXT,
   fonds TEXT,
   type_de_document TEXT,
@@ -49,11 +108,47 @@ CREATE TABLE fonds_documentaire (
   ancien_propietaire TEXT,
   notes TEXT,
   don TEXT,
-  emplacement_initial_dans_la_bibliotheque TEXT
+  emplacement_initial_dans_la_bibliotheque TEXT,
+  tsvector_titre TSVECTOR,
+  tsvector_auteur TSVECTOR,
+  tsvector_combined TSVECTOR
 );
 
+DROP FUNCTION IF EXISTS update_tsvector_fonds_documentaire() CASCADE;
+CREATE FUNCTION update_tsvector_fonds_documentaire() RETURNS TRIGGER AS $$
+BEGIN
+    NEW.tsvector_titre := setweight(to_tsvector('french', NEW.titre), 'A');
+    NEW.tsvector_auteur := setweight(to_tsvector('french', NEW.auteur), 'A');
+    NEW.tsvector_combined :=
+            setweight(to_tsvector('french', NEW.titre), 'A') ||
+            setweight(to_tsvector('french', NEW.auteur), 'A') ||
+            setweight(to_tsvector('french', NEW.auteur_bis), 'A') ||
+            setweight(to_tsvector('french', NEW.contenu), 'B') ||
+            setweight(to_tsvector('french', NEW.datation), 'B') ||
+            setweight(to_tsvector('french', NEW.notes), 'C') ||
+            setweight(to_tsvector('french', NEW.langue), 'C') ||
+            setweight(to_tsvector('french', NEW.type_de_document), 'C') ||
+            setweight(to_tsvector('french', NEW.fonds), 'C') ||
+            setweight(to_tsvector('french', NEW.couverture), 'D') ||
+            setweight(to_tsvector('french', NEW.emplacement), 'D') ||
+            setweight(to_tsvector('french', NEW.n_carton), 'D') ||
+            setweight(to_tsvector('french', NEW.edition), 'D') ||
+            setweight(to_tsvector('french', NEW.ancien_propietaire), 'D') ||
+            setweight(to_tsvector('french', NEW.don), 'D') ||
+            setweight(to_tsvector('french', NEW.emplacement_initial_dans_la_bibliotheque), 'D') ||
+            setweight(to_tsvector('french', NEW.etat), 'D');
+    RETURN NEW;
+END
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tsvectorupdatefondsdocumentaires BEFORE INSERT OR UPDATE
+    ON fonds_documentaire FOR EACH ROW EXECUTE FUNCTION update_tsvector_fonds_documentaire();
+
+
+
+DROP TABLE IF EXISTS fonds_johannique;
 CREATE TABLE fonds_johannique (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id uuid PRIMARY KEY,
   epi TEXT,
   travee TEXT,
   tablette TEXT,
@@ -64,21 +159,75 @@ CREATE TABLE fonds_johannique (
   tome TEXT,
   etat TEXT,
   metrage_ou_commentaire TEXT,
-  carton TEXT
+  carton TEXT,
+  tsvector_auteur TSVECTOR,
+  tsvector_titre TSVECTOR,
+  tsvector_combined TSVECTOR
 );
 
+DROP FUNCTION IF EXISTS update_tsvector_fonds_johannique() CASCADE;
+CREATE FUNCTION update_tsvector_fonds_johannique() RETURNS TRIGGER AS $$
+BEGIN
+    NEW.tsvector_titre := setweight(to_tsvector('french', NEW.titre), 'A');
+    NEW.tsvector_auteur := setweight(to_tsvector('french', NEW.auteur), 'A');
+    NEW.tsvector_combined :=
+            setweight(to_tsvector('french', NEW.titre), 'A') ||
+            setweight(to_tsvector('french', NEW.auteur), 'A') ||
+            setweight(to_tsvector('french', NEW.annee), 'B') ||
+            setweight(to_tsvector('french', NEW.cote), 'C') ||
+            setweight(to_tsvector('french', NEW.metrage_ou_commentaire), 'C') ||
+            setweight(to_tsvector('french', NEW.carton), 'D') ||
+            setweight(to_tsvector('french', NEW.etat), 'D');
+    RETURN NEW;
+END
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tsvectorupdatefondsjohannique BEFORE INSERT OR UPDATE
+    ON fonds_johannique FOR EACH ROW EXECUTE FUNCTION update_tsvector_fonds_johannique();
+
+
+DROP TABLE IF EXISTS index_pays_lorrain;
 CREATE TABLE index_pays_lorrain (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  commentaires TEXT
+  id uuid PRIMARY KEY,
+  commentaires TEXT,
+  tsvector_commentaires TSVECTOR
 );
 
+DROP FUNCTION IF EXISTS update_tsvector_index_pays_lorrain() CASCADE;
+CREATE FUNCTION update_tsvector_index_pays_lorrain() RETURNS TRIGGER AS $$
+BEGIN
+    NEW.tsvector_commentaires := setweight(to_tsvector('french', NEW.commentaires), 'A');
+    RETURN NEW;
+END
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tsvectorupdateindexpayslorrain BEFORE INSERT OR UPDATE
+    ON index_pays_lorrain FOR EACH ROW EXECUTE FUNCTION update_tsvector_index_pays_lorrain();
+
+
+
+DROP TABLE IF EXISTS manuscrits;
 CREATE TABLE manuscrits (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  commentaires TEXT
+  id uuid PRIMARY KEY,
+  commentaires TEXT,
+  tsvector_commentaires TSVECTOR
 );
 
+DROP FUNCTION IF EXISTS update_tsvector_manuscrits() CASCADE;
+CREATE FUNCTION update_tsvector_manuscrits() RETURNS TRIGGER AS $$
+BEGIN
+    NEW.tsvector_commentaires := setweight(to_tsvector('french', NEW.commentaires), 'A');
+    RETURN NEW;
+END
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tsvectorupdatemanuscrits BEFORE INSERT OR UPDATE
+    ON manuscrits FOR EACH ROW EXECUTE FUNCTION update_tsvector_manuscrits();
+
+
+DROP TABLE IF EXISTS index_fiches_total;
 CREATE TABLE index_fiches_total (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id uuid PRIMARY KEY,
   numero TEXT,
   url TEXT,
   initiale TEXT,
@@ -87,35 +236,7 @@ CREATE TABLE index_fiches_total (
   tome TEXT
 );
 
-
-
-
-
-
-CREATE FULLTEXT INDEX keywords_idx ON imprimes(cote,lieu,format,auteur,titre,annee,etat,commentaire);
-CREATE FULLTEXT INDEX titre_idx ON imprimes(titre);
-CREATE FULLTEXT INDEX auteur_idx ON imprimes(auteur);
-CREATE INDEX cote_idx ON imprimes(cote);
-
-CREATE FULLTEXT INDEX keywords_idx ON factums(cote,type,auteur,titre,couverture,langue,edition,datation,contenu,etat,notes,emplacement);
-CREATE FULLTEXT INDEX titre_idx ON factums(titre);
-CREATE FULLTEXT INDEX auteur_idx ON factums(auteur);
-
-CREATE FULLTEXT INDEX keywords_idx ON fonds_documentaire(n_carton,fonds,type_de_document,auteur,auteur_bis,titre,couverture,langue,edition,datation,contenu,etat,ancien_propietaire,notes,don,emplacement_initial_dans_la_bibliotheque);
-CREATE FULLTEXT INDEX titre_idx ON fonds_documentaire(titre);
-CREATE FULLTEXT INDEX auteur_idx ON fonds_documentaire(auteur);
-
-CREATE FULLTEXT INDEX keywords_idx ON fonds_johannique(auteur,titre,annee,cote,etat,metrage_ou_commentaire,carton);
-CREATE FULLTEXT INDEX titre_idx ON fonds_johannique(titre);
-CREATE FULLTEXT INDEX auteur_idx ON fonds_johannique(auteur);
-
-CREATE FULLTEXT INDEX commentaire_idx ON index_pays_lorrain(commentaires);
-
-CREATE FULLTEXT INDEX commentaire_idx ON manuscrits(commentaires);
-
-CREATE INDEX cote_idx ON index_fiches_total(cote);
-
-
-
+CREATE INDEX imprimes_cote_idx ON imprimes(cote);
+CREATE INDEX index_fiches_total_cote_idx ON index_fiches_total(cote);
 
 
