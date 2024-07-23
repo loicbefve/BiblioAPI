@@ -58,7 +58,7 @@ Le nom des fichiers doit respecter le format suivant : `{date}_{nom_de_la_table}
   - `index_fiches_total`
 
 Le contenu de chaque fichier doit également respecter le nom des colonnes de cette table dans la base de données.  
-:caution: **Attention :** Pensez à vérifier que le schéma de la base de données est à jour avec cette documentation.
+:warning: **Attention :** Pensez à vérifier que le schéma de la base de données est à jour avec cette documentation.
 
 | Nom de la table    | Colonnes                                                                                                                                                                                         |
 |--------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
