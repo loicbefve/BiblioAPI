@@ -8,10 +8,10 @@ const sqlQuery = fs.readFileSync(sqlFilePath, 'utf8');
 
 // Update the config to use environment variables
 const config = {
-  user: 'root',
-  host: 'localhost',
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
   database: process.env.DB_NAME,
-  password: 'root',
+  password: process.env.DB_PASSWORD,
 };
 
 const populateDatabase = async () => {

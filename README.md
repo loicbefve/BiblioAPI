@@ -4,9 +4,6 @@ API du site de la bibliothèque.
 
 ## Technologies :
 - Express.js (Serveur http)
-- 
-## Documentation :
-- La recherche
 
 ## Lancer l'environnement de développement :
 
@@ -36,8 +33,48 @@ cependant cela n'est pas garanti.*
 
 Pour lancer l'application en mode développement, il suffit de lancer la commande suivante :
    ```bash
-   yarn start
+   yarn run dev
    ```
+
+## Peupler la base de données :
+*Cette section explique comment insérer les lignes issues du recollement dans la base de données.*
+
+:warning: **Attention :** Cette opération est irréversible. Il est recommandé de sauvegarder la base de données avant de lancer cette commande.
+
+Le script va lire les fichiers `csv` situés dans le répertoire `csv_database` du projet.
+Le nom des fichiers est très important, car il permet de déterminer la table dans laquelle insérer les données ainsi que
+ la date de mise à jour qui sera envoyé par l'API. 
+
+Le nom des fichiers doit respecter le format suivant : `{date}_{nom_de_la_table}.csv`.
+**Exemple** : `2021-01-01_imprimes.csv`
+- `date` : La date de mise à jour des données au format `YYYY-MM-DD`.
+- `nom_de_la_table` : Le nom de la table dans laquelle insérer les données parmi :
+  - `imprimes`
+  - `factums`
+  - `fonds_documentaire`
+  - `fonds_johannique`
+  - `index_pays_lorrain`
+  - `manuscrits`
+  - `index_fiches_total`
+
+Le contenu de chaque fichier doit également respecter le nom des colonnes de cette table dans la base de données.  
+:caution: **Attention :** Pensez à vérifier que le schéma de la base de données est à jour avec cette documentation.
+
+| Nom de la table    | Colonnes                                                                                                                                                                                         |
+|--------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| imprimes           | id, epi, travee, tablette, cote, ordre, lieu, format, auteur, titre, annee, tome, etat, commentaire                                                                                              |
+| factums            | id, cote, tome ,type, auteur, titre, couverture, langue, edition, datation, contenu, etat, notes, emplacement                                                                                    |
+| fonds_documentaire | id, n_carton, fonds, type_de_document, auteur, auteur_bis, titre, couverture, langue, edition, datation, contenu, etat, ancien_propietaire, notes, don, emplacement_initial_dans_la_bibliotheque |
+| fonds_johannique   | id, epi, travee, tablette, auteur, titre, annee, cote, tome, etat, metrage_ou_commentaire, carton                                                                                                |
+| index_pays_lorrain | id, commentaires                                                                                                                                                                                 |
+| manuscrits         | id, commentaires                                                                                                                                                                                 |
+| index_fiches_total | id, numero, url, initiale, classe, cote, tome                                                                                                                                                    |
+
+
+Une fois ces conditions réunies, il suffit d'exécuter la commande suivante :
+```bash
+yarn db:populate
+```
 
 ## Index de recherche sur les tables
 *Cette partie explique comment a été configuré la recherche sur les documents*
