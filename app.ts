@@ -1,12 +1,13 @@
-const createError = require('http-errors');
-const express = require('express');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const logger = require('morgan');
-const cors = require('cors');
+import createError from 'http-errors';
+import express, { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
+import path from 'path';
+import cookieParser from 'cookie-parser';
+import logger from 'morgan';
+import cors from 'cors';
 require('dotenv').config();
 
-const indexRouter = require('./routes');
+import indexRouter from './routes';
+import { config } from './config/config';
 
 const app = express();
 
@@ -23,7 +24,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors());
 
 app.use('/', indexRouter);
-app.use('/fiches', express.static(process.env.FICHES_PATH));
+app.use('/fiches', express.static(config.fichesPath));
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -31,7 +32,7 @@ app.use(function (req, res, next) {
 });
 
 // error handler
-app.use(function (err, req, res, next) {
+const errorHandler: ErrorRequestHandler = function (err: Error, req: Request, res: Response, next: NextFunction) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
@@ -39,6 +40,9 @@ app.use(function (err, req, res, next) {
   // render the error page
   res.status(err.status || 500);
   res.render('error');
-});
+}
+app.use(errorHandler);
 
-module.exports = app;
+app.listen(3000);
+
+export default app;

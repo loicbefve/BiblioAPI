@@ -1,9 +1,12 @@
-const express = require('express');
+import express from 'express';
+
 const router = express.Router();
-const db = require('../db');
+import db from '../db';
+import logger from 'morgan';
+import createError from 'http-errors';
 
 // UTILS
-function cleanParam(param) {
+function cleanParam(param: string): string {
   let cleaned_param = param.replace(/@/g, '');
   cleaned_param = cleaned_param.replace(/[+-](\s|$)/g, '$1');
   return cleaned_param;
@@ -12,12 +15,20 @@ function cleanParam(param) {
 /* GET home page. */
 router.get('/searchImprimes', async function(req, res, next) {
   /* GET URI QUERY PARAMETERS */
-  const query = req.query;
-  const authorParam = decodeURIComponent(query.author);
-  const titleParam = decodeURIComponent(query.title);
-  const keywordsParam = decodeURIComponent(query.keywords);
+  console.log(req.query);
+  const { author, title, keywords } = req.query;
+  if (author && typeof author !== 'string') {
+    return res.status(400).json({ error: 'Invalid author parameter' });
+  }
+  if (title && typeof title !== 'string') {
+    return res.status(400).json({ error: 'Invalid title parameter' });
+  }
+  if (keywords && typeof keywords !== 'string') {
+    return res.status(400).json({ error: 'Invalid keywords parameter' });
+  }
 
-  var baseQuery =
+  // TODO: DB stuff should go to the db folder
+  let baseQuery =
     `SELECT imp.*, STRING_AGG(ind.url, ',') as urls
      FROM imprimes as imp
               LEFT JOIN index_fiches_total as ind
@@ -27,19 +38,22 @@ router.get('/searchImprimes', async function(req, res, next) {
   const queryParams = [];
   const tsQueryConditions = [];
 
-  if (authorParam) {
+  if (author) {
+    const authorParam = decodeURIComponent(author);
     const cleanedAuthorParam = cleanParam(authorParam);
     tsQueryConditions.push(`tsvector_auteur @@ to_tsquery('french', $${queryParams.length + 1})`);
     queryParams.push(cleanedAuthorParam);
   }
 
-  if (titleParam) {
+  if (title) {
+    const titleParam = decodeURIComponent(title);
     const cleanedTitleParam = cleanParam(titleParam);
     tsQueryConditions.push(`tsvector_titre @@ to_tsquery('french', $${queryParams.length + 1})`);
     queryParams.push(cleanedTitleParam);
   }
 
-  if (keywordsParam) {
+  if (keywords) {
+    const keywordsParam = decodeURIComponent(keywords);
     const cleanedKeywordsParam = cleanParam(keywordsParam);
     tsQueryConditions.push(`tsvector_combined @@ to_tsquery('french', $${queryParams.length + 1})`);
     queryParams.push(cleanedKeywordsParam);
@@ -55,36 +69,43 @@ router.get('/searchImprimes', async function(req, res, next) {
 
 
   /* QUERY THE DATABASE */
-  const result = await db.query(finalQuery, queryParams)
-  /* Transform the result into a JSON object to send */
-  const json_response = results.map((res) => {
-    return {
-      metadatas: {
-        epi: res.epi,
-        travee: res.travee,
-        tablette: res.tablette,
-        cote: res.cote,
-        ordre: res.ordre,
-        lieu: res.lieu,
-        format: res.format,
-        auteur: res.auteur,
-        titre: res.titre,
-        annee: res.annee,
-        tome: res.tome,
-        etat: res.etat,
-        commentaire: res.commentaire,
-        score: res.score
-      },
-      urls: res.urls ? res.urls.split(',') : []
-    };
-  });
+  try {
 
-  console.log(finalQuery);
 
-  res.json(json_response);
+    const result = await db.query(finalQuery, queryParams);
+    /* Transform the result into a JSON object to send */
+    const json_response = result.rows.map((res) => {
+      return {
+        metadatas: {
+          epi: res.epi,
+          travee: res.travee,
+          tablette: res.tablette,
+          cote: res.cote,
+          ordre: res.ordre,
+          lieu: res.lieu,
+          format: res.format,
+          auteur: res.auteur,
+          titre: res.titre,
+          annee: res.annee,
+          tome: res.tome,
+          etat: res.etat,
+          commentaire: res.commentaire,
+          score: res.score
+        },
+        urls: res.urls ? res.urls.split(',') : []
+      };
+    });
 
-      console.error('Failed querying the DB for searchImprimes',error);
-      res.status(500).json({ error: 'Internal server error' });
+    console.log(finalQuery);
+
+    res.json(json_response);
+  } catch (err) {
+    console.error('Failed querying the DB for searchImprimes', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+
+  // console.error('Failed querying the DB for searchImprimes',error);
+  // res.status(500).json({ error: 'Internal server error' });
 
 });
 
@@ -150,7 +171,7 @@ router.get('/searchFactums', function(req, res, next) {
       res.json(json_response);
     })
     .catch((error) => {
-      console.error('Failed querying the DB for searchFactums',error);
+      console.error('Failed querying the DB for searchFactums', error);
       res.status(500).json({ error: 'Internal server error' });
     });
 });
@@ -215,7 +236,7 @@ router.get('/searchFondsJohannique', function(req, res, next) {
       res.json(json_response);
     })
     .catch((error) => {
-      console.error('Failed querying the DB for searchFondsJohannique',error);
+      console.error('Failed querying the DB for searchFondsJohannique', error);
       res.status(500).json({ error: 'Internal server error' });
     });
 });
@@ -282,7 +303,7 @@ router.get('/searchFondsDocumentaire', function(req, res, next) {
       res.json(json_response);
     })
     .catch((error) => {
-      console.error('Failed querying the DB for searchFondsDocumentaire',error);
+      console.error('Failed querying the DB for searchFondsDocumentaire', error);
       res.status(500).json({ error: 'Internal server error' });
     });
 });
@@ -319,7 +340,7 @@ router.get('/searchManuscrits', function(req, res, next) {
       res.json(json_response);
     })
     .catch((error) => {
-      console.error('Failed querying the DB for searchManuscrits',error);
+      console.error('Failed querying the DB for searchManuscrits', error);
       res.status(500).json({ error: 'Internal server error' });
     });
 });
@@ -354,9 +375,9 @@ router.get('/searchIndexPaysLorrain', function(req, res, next) {
       res.json(json_response);
     })
     .catch((error) => {
-      console.error('Failed querying the DB for searchIndexPaysLorrain',error);
+      console.error('Failed querying the DB for searchIndexPaysLorrain', error);
       res.status(500).json({ error: 'Internal server error' });
     });
 });
 
-module.exports = router;
+export default router;

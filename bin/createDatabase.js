@@ -34,7 +34,7 @@ const createDatabase = async () => {
     if (res.rowCount > 0) {
       console.log(`Database "${process.env.DB_NAME}" already exists`);
     } else {
-      await client.query(`CREATE DATABASE ${process.env.POSTGRES_DB}`);
+      await client.query(`CREATE DATABASE ${process.env.DB_NAME}`);
       console.log('Database created successfully');
     }
 
@@ -62,5 +62,4 @@ const populateDatabase = async () => {
   }
 };
 
-createDatabase();
-populateDatabase();
+createDatabase().then(() => populateDatabase());
