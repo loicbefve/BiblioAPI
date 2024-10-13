@@ -100,4 +100,9 @@ async function executeSqlFile(file) {
   }
 }
 
+if (process.env.DB_HOST === undefined || process.env.DB_USER === undefined || process.env.DB_NAME === undefined || process.env.DB_PASSWORD === undefined) {
+  console.error('Please make sure to create a .env file with the appropriate environment variables.');
+  process.exit(1);
+}
+
 main();

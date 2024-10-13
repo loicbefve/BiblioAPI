@@ -56,4 +56,9 @@ if (process.env.DB_HOST !== 'localhost') {
   console.error('This script can only be run on a local development environment.');
   process.exit(1);
 }
+
+if (process.env.DB_HOST === undefined || process.env.DB_USER === undefined || process.env.DB_NAME === undefined || process.env.DB_PASSWORD === undefined) {
+  console.error('Please make sure to create a .env file with the appropriate environment variables.');
+  process.exit(1);
+}
 resetDatabase();
