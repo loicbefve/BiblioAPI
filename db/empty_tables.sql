@@ -105,7 +105,7 @@ CREATE TABLE fonds_documentaire (
   datation TEXT,
   contenu TEXT,
   etat TEXT,
-  ancien_propietaire TEXT,
+  ancien_proprietaire TEXT,
   notes TEXT,
   don TEXT,
   emplacement_initial_dans_la_bibliotheque TEXT,
