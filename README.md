@@ -28,13 +28,24 @@ cependant cela n'est pas garanti.*
     ```bash
     yarn db:create
     ```
+   Attention le script va s'exécuter sur la base de données définie dans votre fichier `.env`.
 
 ### Lancer l'application :
 
 Pour lancer l'application en mode développement, il suffit de lancer la commande suivante :
-   ```bash
-   yarn run dev
-   ```
+```bash
+yarn run dev
+```
+
+## Reset the database :
+*Cette section explique comment réinitialiser la base de données.*  
+:warning: **Attention :** Cette opération est irréversible et va supprimer de la donnée. Il est recommandé de sauvegarder la base de données avant de lancer cette commande.
+
+Pour réinitialiser la base de données, il suffit de lancer la commande suivante :
+```bash
+yarn db:reset
+```
+Attention le script va s'exécuter sur la base de données définie dans votre fichier `.env`.
 
 ## Peupler la base de données :
 *Cette section explique comment insérer les lignes issues du recollement dans la base de données.*
@@ -75,6 +86,7 @@ Une fois ces conditions réunies, il suffit d'exécuter la commande suivante :
 ```bash
 yarn db:populate
 ```
+Attention le script va s'exécuter sur la base de données définie dans votre fichier `.env`.
 
 ## Index de recherche sur les tables
 *Cette partie explique comment a été configuré la recherche sur les documents*
