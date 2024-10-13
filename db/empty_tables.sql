@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS imprimes;
 CREATE TABLE imprimes (
-  id uuid PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   epi TEXT,
   travee TEXT,
   tablette TEXT,
@@ -44,7 +44,7 @@ CREATE TRIGGER tsvectorupdateimprimee BEFORE INSERT OR UPDATE
 
 DROP TABLE IF EXISTS factums;
 CREATE TABLE factums (
-  id uuid PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   cote VARCHAR(20),
   tome TEXT,
   type TEXT,
@@ -77,7 +77,6 @@ BEGIN
             setweight(to_tsvector('french', NEW.langue), 'C') ||
             setweight(to_tsvector('french', NEW.type), 'C') ||
             setweight(to_tsvector('french', NEW.cote), 'D') ||
-            setweight(to_tsvector('french', NEW.format), 'D') ||
             setweight(to_tsvector('french', NEW.couverture), 'D') ||
             setweight(to_tsvector('french', NEW.edition), 'D') ||
             setweight(to_tsvector('french', NEW.emplacement), 'D') ||
@@ -92,7 +91,7 @@ CREATE TRIGGER tsvectorupdatefactums BEFORE INSERT OR UPDATE
 
 DROP TABLE IF EXISTS fonds_documentaire;
 CREATE TABLE fonds_documentaire (
-  id uuid PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   n_carton TEXT,
   fonds TEXT,
   type_de_document TEXT,
@@ -130,10 +129,8 @@ BEGIN
             setweight(to_tsvector('french', NEW.type_de_document), 'C') ||
             setweight(to_tsvector('french', NEW.fonds), 'C') ||
             setweight(to_tsvector('french', NEW.couverture), 'D') ||
-            setweight(to_tsvector('french', NEW.emplacement), 'D') ||
             setweight(to_tsvector('french', NEW.n_carton), 'D') ||
             setweight(to_tsvector('french', NEW.edition), 'D') ||
-            setweight(to_tsvector('french', NEW.ancien_propietaire), 'D') ||
             setweight(to_tsvector('french', NEW.don), 'D') ||
             setweight(to_tsvector('french', NEW.emplacement_initial_dans_la_bibliotheque), 'D') ||
             setweight(to_tsvector('french', NEW.etat), 'D');
@@ -148,7 +145,7 @@ CREATE TRIGGER tsvectorupdatefondsdocumentaires BEFORE INSERT OR UPDATE
 
 DROP TABLE IF EXISTS fonds_johannique;
 CREATE TABLE fonds_johannique (
-  id uuid PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   epi TEXT,
   travee TEXT,
   tablette TEXT,
@@ -188,7 +185,7 @@ CREATE TRIGGER tsvectorupdatefondsjohannique BEFORE INSERT OR UPDATE
 
 DROP TABLE IF EXISTS index_pays_lorrain;
 CREATE TABLE index_pays_lorrain (
-  id uuid PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   commentaires TEXT,
   tsvector_commentaires TSVECTOR
 );
@@ -208,7 +205,7 @@ CREATE TRIGGER tsvectorupdateindexpayslorrain BEFORE INSERT OR UPDATE
 
 DROP TABLE IF EXISTS manuscrits;
 CREATE TABLE manuscrits (
-  id uuid PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   commentaires TEXT,
   tsvector_commentaires TSVECTOR
 );
@@ -227,7 +224,7 @@ CREATE TRIGGER tsvectorupdatemanuscrits BEFORE INSERT OR UPDATE
 
 DROP TABLE IF EXISTS index_fiches_total;
 CREATE TABLE index_fiches_total (
-  id uuid PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   numero TEXT,
   url TEXT,
   initiale TEXT,
