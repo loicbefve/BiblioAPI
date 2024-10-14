@@ -20,7 +20,6 @@ export interface ImprimesSearchDBModel {
 }
 
 export async function searchImprimes(author: string|undefined, title: string|undefined, keywords: string|undefined): Promise<ImprimesSearchDBModel[]> {
-
   let baseQuery =
     `SELECT 
         imp.id,
@@ -37,39 +36,50 @@ export async function searchImprimes(author: string|undefined, title: string|und
         imp.tome,
         imp.etat,
         imp.commentaire,
-        STRING_AGG(ind.url, ',') as urls
+        STRING_AGG(ind.url, ',') as urls`;
+
+  let secondPart = `
      FROM imprimes as imp
      LEFT JOIN index_fiches_total as ind
      ON (imp.cote = ind.cote)
-     WHERE 1 = 1`;
+     `;
 
   const queryParams = [];
   const tsQueryConditions = [];
-
-  if (author) {
-    tsQueryConditions.push(`tsvector_auteur @@ to_tsquery('french', $${queryParams.length + 1})`);
-    queryParams.push(author);
-  }
+  const scoreConditions = [];
 
   if (title) {
     tsQueryConditions.push(`tsvector_titre @@ to_tsquery('french', $${queryParams.length + 1})`);
+    scoreConditions.push(`ts_rank(tsvector_titre, to_tsquery('french', $${queryParams.length + 1}))`);
     queryParams.push(title);
+  }
+
+  if (author) {
+    tsQueryConditions.push(`tsvector_auteur @@ to_tsquery('french', $${queryParams.length + 1})`);
+    scoreConditions.push(`ts_rank(tsvector_auteur, to_tsquery('french', $${queryParams.length + 1}))`);
+    queryParams.push(author);
   }
 
   if (keywords) {
     tsQueryConditions.push(`tsvector_combined @@ to_tsquery('french', $${queryParams.length + 1})`);
+    scoreConditions.push(`ts_rank(tsvector_combined, to_tsquery('french', $${queryParams.length + 1}))`);
     queryParams.push(keywords);
   }
 
   if (tsQueryConditions.length > 0) {
-    baseQuery += ` AND (${tsQueryConditions.join(' OR ')})`;
+    baseQuery += `, ${scoreConditions.join(' + ')} as score`;
+    baseQuery += secondPart;
+    baseQuery += ` WHERE (${tsQueryConditions.join(' OR ')})`;
+  } else {
+    baseQuery += secondPart;
   }
 
   const finalQuery =
     baseQuery +
-    ' GROUP BY imp.id, imp.epi, imp.travee, imp.tablette, imp.cote, imp.ordre, imp.lieu, imp.format, imp.auteur, imp.titre, imp.annee, imp.tome, imp.etat, imp.commentaire';
+    ' GROUP BY imp.id, imp.epi, imp.travee, imp.tablette, imp.cote, imp.ordre, imp.lieu, imp.format, imp.auteur, imp.titre, imp.annee, imp.tome, imp.etat, imp.commentaire' +
+    ' ORDER BY score DESC';
 
-
+  console.log(finalQuery);
   const result: QueryResult<ImprimesSearchDBModel> = await pool.query(finalQuery, queryParams)
   return result.rows;
 
