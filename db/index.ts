@@ -1,15 +1,8 @@
-import { PoolConfig, Pool } from 'pg';
-import { config } from '../config/config';
+import * as imprimesDb from './imprimes';
 
-const poolConfig: PoolConfig = {
-  user: config.db.user,
-  host: config.db.host,
-  database: config.db.database,
-  password: config.db.password,
-  port: config.db.port,
-  max: config.db.maxConnections
-};
+export const db = {
+  ...imprimesDb
+}
 
-const db = new Pool(poolConfig);
 
-export default db;
+

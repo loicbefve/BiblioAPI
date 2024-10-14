@@ -1,9 +1,8 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
+import { db } from '../db';
+import { mapSearchImprimeListToApi, mapSearchImprimeToApi } from '../mappers/imprimes';
 
 const router = express.Router();
-import db from '../db';
-import logger from 'morgan';
-import createError from 'http-errors';
 
 // UTILS
 function cleanParam(param: string): string {
@@ -12,104 +11,32 @@ function cleanParam(param: string): string {
   return cleaned_param;
 }
 
-/* GET home page. */
-router.get('/searchImprimes', async function(req, res, next) {
-  /* GET URI QUERY PARAMETERS */
-  console.log(req.query);
+function processParam(param: any): string | undefined {
+  if (!param) return undefined;
+  else if (typeof param !== 'string') return undefined;
+  return cleanParam(decodeURIComponent(param));
+}
+
+router.get('/searchImprimes', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+
+  /* GET URI QUERY PARAMETERS AND VALIDATE THEM */
   const { author, title, keywords } = req.query;
-  if (author && typeof author !== 'string') {
-    return res.status(400).json({ error: 'Invalid author parameter' });
-  }
-  if (title && typeof title !== 'string') {
-    return res.status(400).json({ error: 'Invalid title parameter' });
-  }
-  if (keywords && typeof keywords !== 'string') {
-    return res.status(400).json({ error: 'Invalid keywords parameter' });
-  }
+  let cleanedAuthorParam = processParam(author);
+  let cleanedTitleParam = processParam(title);
+  let cleanedKeywordsParam = processParam(keywords);
 
-  // TODO: DB stuff should go to the db folder
-  let baseQuery =
-    `SELECT imp.*, STRING_AGG(ind.url, ',') as urls
-     FROM imprimes as imp
-              LEFT JOIN index_fiches_total as ind
-                        ON (imp.cote = ind.cote)
-     WHERE 1 = 1`;
-
-  const queryParams = [];
-  const tsQueryConditions = [];
-
-  if (author) {
-    const authorParam = decodeURIComponent(author);
-    const cleanedAuthorParam = cleanParam(authorParam);
-    tsQueryConditions.push(`tsvector_auteur @@ to_tsquery('french', $${queryParams.length + 1})`);
-    queryParams.push(cleanedAuthorParam);
-  }
-
-  if (title) {
-    const titleParam = decodeURIComponent(title);
-    const cleanedTitleParam = cleanParam(titleParam);
-    tsQueryConditions.push(`tsvector_titre @@ to_tsquery('french', $${queryParams.length + 1})`);
-    queryParams.push(cleanedTitleParam);
-  }
-
-  if (keywords) {
-    const keywordsParam = decodeURIComponent(keywords);
-    const cleanedKeywordsParam = cleanParam(keywordsParam);
-    tsQueryConditions.push(`tsvector_combined @@ to_tsquery('french', $${queryParams.length + 1})`);
-    queryParams.push(cleanedKeywordsParam);
-  }
-
-  if (tsQueryConditions.length > 0) {
-    baseQuery += ` AND (${tsQueryConditions.join(' OR ')})`;
-  }
-
-  const finalQuery =
-    baseQuery +
-    ' GROUP BY imp.id, imp.epi, imp.travee, imp.tablette, imp.cote, imp.ordre, imp.lieu, imp.format, imp.auteur, imp.titre, imp.annee, imp.tome, imp.etat, imp.commentaire';
-
-
-  /* QUERY THE DATABASE */
   try {
-
-
-    const result = await db.query(finalQuery, queryParams);
-    /* Transform the result into a JSON object to send */
-    const json_response = result.rows.map((res) => {
-      return {
-        metadatas: {
-          epi: res.epi,
-          travee: res.travee,
-          tablette: res.tablette,
-          cote: res.cote,
-          ordre: res.ordre,
-          lieu: res.lieu,
-          format: res.format,
-          auteur: res.auteur,
-          titre: res.titre,
-          annee: res.annee,
-          tome: res.tome,
-          etat: res.etat,
-          commentaire: res.commentaire,
-          score: res.score
-        },
-        urls: res.urls ? res.urls.split(',') : []
-      };
-    });
-
-    console.log(finalQuery);
-
-    res.json(json_response);
-  } catch (err) {
-    console.error('Failed querying the DB for searchImprimes', err);
-    return res.status(500).json({ error: 'Internal server error' });
+    const dbResult = await db.searchImprimes(cleanedAuthorParam, cleanedTitleParam, cleanedKeywordsParam)
+    const apiResult = mapSearchImprimeListToApi(dbResult);
+    res.json(apiResult);
+  } catch (error) {
+    console.error('Failed querying the DB for searchImprimes', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
-
-  // console.error('Failed querying the DB for searchImprimes',error);
-  // res.status(500).json({ error: 'Internal server error' });
 
 });
 
-router.get('/searchFactums', function(req, res, next) {
+router.get('/searchFactums', async (req: Request, res: Response, next: NextFunction) => {
   /* GET URI QUERY PARAMETERS */
   const query = req.query;
   const authorParam = decodeURIComponent(query.author);
@@ -144,7 +71,7 @@ router.get('/searchFactums', function(req, res, next) {
     ' GROUP BY fac.id, fac.cote, fac.tome, fac.type, fac.auteur, fac.titre, fac.couverture, fac.langue, fac.edition, fac.datation, fac.contenu, fac.etat, fac.notes, fac.emplacement';
 
   /* QUERY THE DATABASE */
-  db.query(finalQuery, queryParams)
+  pool.query(finalQuery, queryParams)
     .then((results) => {
       /* Transform the result into a JSON object to send */
       const json_response = results.map((res) => {
@@ -211,7 +138,7 @@ router.get('/searchFondsJohannique', function(req, res, next) {
     ' GROUP BY fon.id, fon.epi, fon.travee, fon.tablette, fon.auteur, fon.titre, fon.annee, fon.cote, fon.tome, fon.etat, fon.metrage_ou_commentaire, fon.carton';
 
   /* QUERY THE DATABASE */
-  db.query(finalQuery, queryParams)
+  pool.query(finalQuery, queryParams)
     .then((results) => {
       /* Transform the result into a JSON object to send */
       const json_response = results.map((res) => {
@@ -273,7 +200,7 @@ router.get('/searchFondsDocumentaire', function(req, res, next) {
 
   const finalQuery = baseQuery;
 
-  db.query(finalQuery, queryParams)
+  pool.query(finalQuery, queryParams)
     .then((results) => {
       const json_response = results.map((res) => {
         return {
@@ -325,7 +252,7 @@ router.get('/searchManuscrits', function(req, res, next) {
 
   const finalQuery = baseQuery;
 
-  db.query(finalQuery, queryParams)
+  pool.query(finalQuery, queryParams)
     .then((results) => {
       if (error) throw error;
 
@@ -361,7 +288,7 @@ router.get('/searchIndexPaysLorrain', function(req, res, next) {
 
   const finalQuery = baseQuery;
 
-  db.query(finalQuery, queryParams)
+  pool.query(finalQuery, queryParams)
     .then((results) => {
 
       const json_response = results.map((res) => {

@@ -27,21 +27,27 @@ app.use('/', indexRouter);
 app.use('/fiches', express.static(config.fichesPath));
 
 // If none of the routes above match, I will return a 404 error that will be caught by the error handler
-app.use(function (req, res, next) {
+app.use(function (req:Request, res:Response, next: NextFunction) {
   next(createError(404));
 });
 
 // error handler
-const errorHandler: ErrorRequestHandler = function (err: Error, req: Request, res: Response, next: NextFunction) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+const errorHandler: ErrorRequestHandler = (err: Error, req: Request, res: Response, _next: NextFunction) => {
+  // Set the status code for the response
+  const errStatus = err instanceof HttpError ? err.status : 500;
 
-  // render the error page
-  let errStatus = err instanceof HttpError ? err.status : 500;
-  res.status(errStatus || 500);
-  res.render('error');
-}
+  // Log the error (optional)
+  console.error(err);
+
+  // Send a JSON response
+  res.status(errStatus).json({
+    error: {
+      message: err.message,
+      status: errStatus,
+      ...(req.app.get('env') === 'development' ? { stack: err.stack } : {})
+    }
+  });
+};
 app.use(errorHandler);
 
 app.listen(3000);
