@@ -79,7 +79,6 @@ export async function searchImprimes(author: string|undefined, title: string|und
     ' GROUP BY imp.id, imp.epi, imp.travee, imp.tablette, imp.cote, imp.ordre, imp.lieu, imp.format, imp.auteur, imp.titre, imp.annee, imp.tome, imp.etat, imp.commentaire' +
     ' ORDER BY score DESC';
 
-  console.log(finalQuery);
   const result: QueryResult<ImprimesSearchDBModel> = await pool.query(finalQuery, queryParams)
   return result.rows;
 
