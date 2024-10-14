@@ -1,4 +1,4 @@
-import createError from 'http-errors';
+import createError, { HttpError } from 'http-errors';
 import express, { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
 import path from 'path';
 import cookieParser from 'cookie-parser';
@@ -26,7 +26,7 @@ app.use(cors());
 app.use('/', indexRouter);
 app.use('/fiches', express.static(config.fichesPath));
 
-// catch 404 and forward to error handler
+// If none of the routes above match, I will return a 404 error that will be caught by the error handler
 app.use(function (req, res, next) {
   next(createError(404));
 });
@@ -38,11 +38,10 @@ const errorHandler: ErrorRequestHandler = function (err: Error, req: Request, re
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
   // render the error page
-  res.status(err.status || 500);
+  let errStatus = err instanceof HttpError ? err.status : 500;
+  res.status(errStatus || 500);
   res.render('error');
 }
 app.use(errorHandler);
 
 app.listen(3000);
-
-export default app;
