@@ -3,6 +3,7 @@ import { db } from '../db';
 import { mapSearchImprimeListToApi, mapSearchImprimeToApi } from '../mappers/imprimes';
 import { mapSearchFactumsListToApi } from '../mappers/factums';
 import { mapSearchFondsJohanniqueListToApi } from '../mappers/fonds_johannique';
+import { mapSearchFondsDocumentaireListToApi } from '../mappers/fonds_documentaire';
 
 const router = express.Router();
 
@@ -68,7 +69,7 @@ router.get('/searchFondsJohannique', async (req: Request, res: Response, _next: 
     const apiResult = mapSearchFondsJohanniqueListToApi(dbResult);
     res.json(apiResult);
   } catch (error) {
-    console.error('Failed querying the DB for searchFactums', error);
+    console.error('Failed querying the DB for searchFondsJohannique', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 
@@ -82,72 +83,14 @@ router.get('/searchFondsDocumentaire', async (req: Request, res: Response, _next
   let cleanedKeywordsParam = processParam(keywords);
 
   try {
-    const dbResult = await db.searchFondsJohannique(cleanedAuthorParam, cleanedTitleParam, cleanedKeywordsParam)
-    const apiResult = mapSearchFondsJohanniqueListToApi(dbResult);
+    const dbResult = await db.searchFondsDocumentaire(cleanedAuthorParam, cleanedTitleParam, cleanedKeywordsParam)
+    const apiResult = mapSearchFondsDocumentaireListToApi(dbResult);
     res.json(apiResult);
   } catch (error) {
-    console.error('Failed querying the DB for searchFactums', error);
+    console.error('Failed querying the DB for searchFondsDocumentaire', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 
-  var baseQuery = 'SELECT * FROM fonds_documentaire WHERE 1=1';
-
-  const queryParams = [];
-
-  if (authorParam) {
-    const cleanedAuthorParam = cleanParam(authorParam);
-    baseQuery += ' AND MATCH(auteur,auteur_bis) AGAINST(? IN BOOLEAN MODE)';
-    queryParams.push(cleanedAuthorParam);
-  }
-
-  if (titleParam) {
-    const cleanedTitleParam = cleanParam(titleParam);
-    baseQuery += ' AND MATCH(titre) AGAINST(? IN BOOLEAN MODE)';
-    queryParams.push(cleanedTitleParam);
-  }
-
-  if (keywordsParam) {
-    const cleanedKeywordsParam = cleanParam(keywordsParam);
-    baseQuery +=
-      ' AND MATCH(n_carton,fonds,type_de_document,auteur,auteur_bis,titre,couverture,langue,edition,datation,contenu,etat,ancien_propietaire,notes,don,emplacement_initial_dans_la_bibliotheque) AGAINST (? IN BOOLEAN MODE)';
-    queryParams.push(cleanedKeywordsParam);
-  }
-
-  const finalQuery = baseQuery;
-
-  pool.query(finalQuery, queryParams)
-    .then((results) => {
-      const json_response = results.map((res) => {
-        return {
-          metadatas: {
-            carton: res.n_carton,
-            fonds: res.fonds,
-            type_de_document: res.type_de_document,
-            auteur: res.auteur,
-            auteur_bis: res.auteur_bis,
-            titre: res.titre,
-            couverture: res.couverture,
-            langue: res.langue,
-            edition: res.edition,
-            datation: res.datation,
-            contenu: res.contenu,
-            etat: res.etat,
-            ancien_proprietaire: res.ancien_proprietaire,
-            notes: res.notes,
-            don: res.don,
-            emplacement_initiale_dans_la_bibliotheque:
-            res.emplacement_initiale_dans_la_bibliotheque
-          },
-          urls: []
-        };
-      });
-
-      res.json(json_response);
-    })
-    .catch((error) => {
-      console.error('Failed querying the DB for searchFondsDocumentaire', error);
-      res.status(500).json({ error: 'Internal server error' });
-    });
 });
 
 router.get('/searchManuscrits', async (req: Request, res: Response, _next: NextFunction) => {

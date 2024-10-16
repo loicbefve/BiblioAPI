@@ -1,11 +1,13 @@
 import * as imprimesDb from './imprimes';
 import * as factumsDb from './factums';
 import * as fondsJohanniqueDb from './fonds_johannique';
+import * as fondsDocumentaireDb from './fonds_documentaire';
 
 export const db = {
   ...imprimesDb,
   ...factumsDb,
-  ...fondsJohanniqueDb
+  ...fondsJohanniqueDb,
+  ...fondsDocumentaireDb
 }
 
 
