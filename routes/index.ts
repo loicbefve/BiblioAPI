@@ -1,6 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { db } from '../db';
-import { mapSearchImprimeListToApi, mapSearchImprimeToApi } from '../mappers/imprimes';
+import { mapSearchImprimeListToApi } from '../mappers/imprimes';
 import { mapSearchFactumsListToApi } from '../mappers/factums';
 import { mapSearchFondsJohanniqueListToApi } from '../mappers/fonds_johannique';
 import { mapSearchFondsDocumentaireListToApi } from '../mappers/fonds_documentaire';
