@@ -4,6 +4,7 @@ import { mapSearchImprimeListToApi, mapSearchImprimeToApi } from '../mappers/imp
 import { mapSearchFactumsListToApi } from '../mappers/factums';
 import { mapSearchFondsJohanniqueListToApi } from '../mappers/fonds_johannique';
 import { mapSearchFondsDocumentaireListToApi } from '../mappers/fonds_documentaire';
+import { mapSearchManuscritsListToApi } from '../mappers/manuscrits';
 
 const router = express.Router();
 
@@ -98,36 +99,15 @@ router.get('/searchManuscrits', async (req: Request, res: Response, _next: NextF
   const { keywords } = req.query;
   let cleanedKeywordsParam = processParam(keywords);
 
-  var baseQuery = 'SELECT * FROM manuscrits WHERE 1=1';
-
-  const queryParams = [];
-
-  if (keywordsParam) {
-    const cleanedKeywordsParam = cleanParam(keywordsParam);
-    baseQuery += ' AND MATCH(commentaires) AGAINST (? IN BOOLEAN MODE)';
-    queryParams.push(cleanedKeywordsParam);
+  try {
+    const dbResult = await db.searchManuscrits(cleanedKeywordsParam)
+    const apiResult = mapSearchManuscritsListToApi(dbResult);
+    res.json(apiResult);
+  } catch (error) {
+    console.error('Failed querying the DB for searchManuscrits', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 
-  const finalQuery = baseQuery;
-
-  pool.query(finalQuery, queryParams)
-    .then((results) => {
-      if (error) throw error;
-
-      const json_response = results.map((res) => {
-        return {
-          metadatas: {
-            commentaires: res.commentaires
-          }
-        };
-      });
-
-      res.json(json_response);
-    })
-    .catch((error) => {
-      console.error('Failed querying the DB for searchManuscrits', error);
-      res.status(500).json({ error: 'Internal server error' });
-    });
 });
 
 router.get('/searchIndexPaysLorrain', async (req: Request, res: Response, _next: NextFunction) => {
