@@ -88,6 +88,12 @@ yarn db:populate
 ```
 Attention le script va s'exécuter sur la base de données définie dans votre fichier `.env`.
 
+## API Schema :
+An openapi schema is available in the `docs/openapi.yaml` file.
+It is not auto-generated nor generates the code, it is a manual schema. This is
+because the schema is expected to be stable and not change in the future.
+However, it can be used to generate client code or to test the API.
+
 ## Index de recherche sur les tables
 *Cette partie explique comment a été configuré la recherche sur les documents*
 
