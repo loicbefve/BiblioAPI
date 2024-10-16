@@ -113,7 +113,7 @@ router.get('/searchManuscrits', async (req: Request, res: Response, _next: NextF
 
 router.get('/searchIndexPaysLorrain', async (req: Request, res: Response, _next: NextFunction) => {
   /* GET URI QUERY PARAMETERS AND VALIDATE THEM */
-  const { author, title, keywords } = req.query;
+  const { keywords } = req.query;
   let cleanedKeywordsParam = processParam(keywords);
 
   try {
