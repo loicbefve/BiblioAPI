@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import { db } from '../db';
 import { mapSearchImprimeListToApi, mapSearchImprimeToApi } from '../mappers/imprimes';
 import { mapSearchFactumsListToApi } from '../mappers/factums';
+import { mapSearchFondsJohanniqueListToApi } from '../mappers/fonds_johannique';
 
 const router = express.Router();
 
@@ -18,7 +19,7 @@ function processParam(param: any): string | undefined {
   return cleanParam(decodeURIComponent(param));
 }
 
-router.get('/searchImprimes', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.get('/searchImprimes', async (req: Request, res: Response, _next: NextFunction) => {
 
   /* GET URI QUERY PARAMETERS AND VALIDATE THEM */
   const { author, title, keywords } = req.query;
@@ -55,70 +56,22 @@ router.get('/searchFactums', async (req: Request, res: Response, _next: NextFunc
 
 });
 
-router.get('/searchFondsJohannique', function(req: Request, res: Response, _next: NextFunction) {
+router.get('/searchFondsJohannique', async (req: Request, res: Response, _next: NextFunction) => {
   /* GET URI QUERY PARAMETERS AND VALIDATE THEM */
   const { author, title, keywords } = req.query;
   let cleanedAuthorParam = processParam(author);
   let cleanedTitleParam = processParam(title);
   let cleanedKeywordsParam = processParam(keywords);
 
-
-  var baseQuery =
-    'SELECT fon.*, STRING_AGG(ind.url, \',\') as urls FROM fonds_johannique as fon LEFT JOIN index_fiches_total as ind ON (fon.cote=ind.cote) WHERE 1=1';
-
-  const queryParams = [];
-
-  if (authorParam) {
-    const cleanedAuthorParam = cleanParam(authorParam);
-    baseQuery += ' AND MATCH(auteur) AGAINST(? IN BOOLEAN MODE)';
-    queryParams.push(cleanedAuthorParam);
+  try {
+    const dbResult = await db.searchFondsJohannique(cleanedAuthorParam, cleanedTitleParam, cleanedKeywordsParam)
+    const apiResult = mapSearchFondsJohanniqueListToApi(dbResult);
+    res.json(apiResult);
+  } catch (error) {
+    console.error('Failed querying the DB for searchFactums', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 
-  if (titleParam) {
-    const cleanedTitleParam = cleanParam(titleParam);
-    baseQuery += ' AND MATCH(titre) AGAINST(? IN BOOLEAN MODE)';
-    queryParams.push(cleanedTitleParam);
-  }
-
-  if (keywordsParam) {
-    const cleanedKeywordsParam = cleanParam(keywordsParam);
-    baseQuery +=
-      ' AND MATCH(auteur,titre,annee,fon.cote,etat,metrage_ou_commentaire,carton) AGAINST (? IN BOOLEAN MODE)';
-    queryParams.push(cleanedKeywordsParam);
-  }
-  const finalQuery =
-    baseQuery +
-    ' GROUP BY fon.id, fon.epi, fon.travee, fon.tablette, fon.auteur, fon.titre, fon.annee, fon.cote, fon.tome, fon.etat, fon.metrage_ou_commentaire, fon.carton';
-
-  /* QUERY THE DATABASE */
-  pool.query(finalQuery, queryParams)
-    .then((results) => {
-      /* Transform the result into a JSON object to send */
-      const json_response = results.map((res) => {
-        return {
-          metadatas: {
-            epi: res.epi,
-            travee: res.travee,
-            tablette: res.tablette,
-            auteur: res.auteur,
-            titre: res.titre,
-            annee: res.annee,
-            cote: res.cote,
-            tome: res.tome,
-            etat: res.etat,
-            metrage_ou_commentaire: res.metrage_ou_commentaire,
-            carton: res.carton
-          },
-          urls: res.urls ? res.urls.split(',') : []
-        };
-      });
-
-      res.json(json_response);
-    })
-    .catch((error) => {
-      console.error('Failed querying the DB for searchFondsJohannique', error);
-      res.status(500).json({ error: 'Internal server error' });
-    });
 });
 
 router.get('/searchFondsDocumentaire', async (req: Request, res: Response, _next: NextFunction) => {
@@ -127,6 +80,15 @@ router.get('/searchFondsDocumentaire', async (req: Request, res: Response, _next
   let cleanedAuthorParam = processParam(author);
   let cleanedTitleParam = processParam(title);
   let cleanedKeywordsParam = processParam(keywords);
+
+  try {
+    const dbResult = await db.searchFondsJohannique(cleanedAuthorParam, cleanedTitleParam, cleanedKeywordsParam)
+    const apiResult = mapSearchFondsJohanniqueListToApi(dbResult);
+    res.json(apiResult);
+  } catch (error) {
+    console.error('Failed querying the DB for searchFactums', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 
   var baseQuery = 'SELECT * FROM fonds_documentaire WHERE 1=1';
 
