@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { db } from '../db';
 import { mapSearchImprimeListToApi, mapSearchImprimeToApi } from '../mappers/imprimes';
+import { mapSearchFactumsListToApi } from '../mappers/factums';
 
 const router = express.Router();
 
@@ -36,79 +37,31 @@ router.get('/searchImprimes', async (req: Request, res: Response, next: NextFunc
 
 });
 
-router.get('/searchFactums', async (req: Request, res: Response, next: NextFunction) => {
-  /* GET URI QUERY PARAMETERS */
-  const query = req.query;
-  const authorParam = decodeURIComponent(query.author);
-  const titleParam = decodeURIComponent(query.title);
-  const keywordsParam = decodeURIComponent(query.keywords);
+router.get('/searchFactums', async (req: Request, res: Response, _next: NextFunction) => {
+  /* GET URI QUERY PARAMETERS AND VALIDATE THEM */
+  const { author, title, keywords } = req.query;
+  let cleanedAuthorParam = processParam(author);
+  let cleanedTitleParam = processParam(title);
+  let cleanedKeywordsParam = processParam(keywords);
 
-  var baseQuery =
-    'SELECT fac.*, STRING_AGG(ind.url, \',\') as urls FROM factums as fac LEFT JOIN index_fiches_total as ind ON (fac.cote=ind.cote) WHERE 1=1';
-
-  const queryParams = [];
-
-  if (authorParam) {
-    const cleanedAuthorParam = cleanParam(authorParam);
-    baseQuery += ' AND MATCH(auteur) AGAINST(? IN BOOLEAN MODE)';
-    queryParams.push(cleanedAuthorParam);
+  try {
+    const dbResult = await db.searchFactums(cleanedAuthorParam, cleanedTitleParam, cleanedKeywordsParam)
+    const apiResult = mapSearchFactumsListToApi(dbResult);
+    res.json(apiResult);
+  } catch (error) {
+    console.error('Failed querying the DB for searchFactums', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 
-  if (titleParam) {
-    const cleanedTitleParam = cleanParam(titleParam);
-    baseQuery += ' AND MATCH(titre) AGAINST(? IN BOOLEAN MODE)';
-    queryParams.push(cleanedTitleParam);
-  }
-
-  if (keywordsParam) {
-    const cleanedKeywordsParam = cleanParam(keywordsParam);
-    baseQuery +=
-      ' AND MATCH(fac.cote,type,auteur,titre,couverture,langue,edition,datation,contenu,etat,notes,emplacement) AGAINST (? IN BOOLEAN MODE)';
-    queryParams.push(cleanedKeywordsParam);
-  }
-  const finalQuery =
-    baseQuery +
-    ' GROUP BY fac.id, fac.cote, fac.tome, fac.type, fac.auteur, fac.titre, fac.couverture, fac.langue, fac.edition, fac.datation, fac.contenu, fac.etat, fac.notes, fac.emplacement';
-
-  /* QUERY THE DATABASE */
-  pool.query(finalQuery, queryParams)
-    .then((results) => {
-      /* Transform the result into a JSON object to send */
-      const json_response = results.map((res) => {
-        return {
-          metadatas: {
-            cote: res.cote,
-            tome: res.tome,
-            type: res.type,
-            auteur: res.auteur,
-            titre: res.titre,
-            couverture: res.couverture,
-            langue: res.langue,
-            edition: res.edition,
-            datation: res.datation,
-            contenu: res.contenu,
-            etat: res.etat,
-            notes: res.notes,
-            emplacement: res.emplacement
-          },
-          urls: res.urls ? res.urls.split(',') : []
-        };
-      });
-
-      res.json(json_response);
-    })
-    .catch((error) => {
-      console.error('Failed querying the DB for searchFactums', error);
-      res.status(500).json({ error: 'Internal server error' });
-    });
 });
 
-router.get('/searchFondsJohannique', function(req, res, next) {
-  /* GET URI QUERY PARAMETERS */
-  const query = req.query;
-  const authorParam = decodeURIComponent(query.author);
-  const titleParam = decodeURIComponent(query.title);
-  const keywordsParam = decodeURIComponent(query.keywords);
+router.get('/searchFondsJohannique', function(req: Request, res: Response, _next: NextFunction) {
+  /* GET URI QUERY PARAMETERS AND VALIDATE THEM */
+  const { author, title, keywords } = req.query;
+  let cleanedAuthorParam = processParam(author);
+  let cleanedTitleParam = processParam(title);
+  let cleanedKeywordsParam = processParam(keywords);
+
 
   var baseQuery =
     'SELECT fon.*, STRING_AGG(ind.url, \',\') as urls FROM fonds_johannique as fon LEFT JOIN index_fiches_total as ind ON (fon.cote=ind.cote) WHERE 1=1';
@@ -168,12 +121,12 @@ router.get('/searchFondsJohannique', function(req, res, next) {
     });
 });
 
-router.get('/searchFondsDocumentaire', function(req, res, next) {
-  const query = req.query;
-
-  const authorParam = decodeURIComponent(query.author);
-  const titleParam = decodeURIComponent(query.title);
-  const keywordsParam = decodeURIComponent(query.keywords);
+router.get('/searchFondsDocumentaire', async (req: Request, res: Response, _next: NextFunction) => {
+  /* GET URI QUERY PARAMETERS AND VALIDATE THEM */
+  const { author, title, keywords } = req.query;
+  let cleanedAuthorParam = processParam(author);
+  let cleanedTitleParam = processParam(title);
+  let cleanedKeywordsParam = processParam(keywords);
 
   var baseQuery = 'SELECT * FROM fonds_documentaire WHERE 1=1';
 
@@ -235,10 +188,10 @@ router.get('/searchFondsDocumentaire', function(req, res, next) {
     });
 });
 
-router.get('/searchManuscrits', function(req, res, next) {
-  const query = req.query;
-
-  const keywordsParam = decodeURIComponent(query.keywords);
+router.get('/searchManuscrits', async (req: Request, res: Response, _next: NextFunction) => {
+  /* GET URI QUERY PARAMETERS AND VALIDATE THEM */
+  const { keywords } = req.query;
+  let cleanedKeywordsParam = processParam(keywords);
 
   var baseQuery = 'SELECT * FROM manuscrits WHERE 1=1';
 
@@ -271,10 +224,11 @@ router.get('/searchManuscrits', function(req, res, next) {
       res.status(500).json({ error: 'Internal server error' });
     });
 });
-router.get('/searchIndexPaysLorrain', function(req, res, next) {
-  const query = req.query;
 
-  const keywordsParam = decodeURIComponent(query.keywords);
+router.get('/searchIndexPaysLorrain', async (req: Request, res: Response, _next: NextFunction) => {
+  /* GET URI QUERY PARAMETERS AND VALIDATE THEM */
+  const { author, title, keywords } = req.query;
+  let cleanedKeywordsParam = processParam(keywords);
 
   var baseQuery = 'SELECT * FROM index_pays_lorrain WHERE 1=1';
 
