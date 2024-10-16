@@ -16,7 +16,7 @@ export interface ImprimesSearchDBModel {
   tome: string;
   etat: string;
   commentaire: string;
-  urls: string;
+  urls: string[];
 }
 
 export async function searchImprimes(author: string|undefined, title: string|undefined, keywords: string|undefined): Promise<ImprimesSearchDBModel[]> {
