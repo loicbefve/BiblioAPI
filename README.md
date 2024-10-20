@@ -24,7 +24,9 @@ cependant cela n'est pas garanti.*
     ```bash
     docker-compose up -d
     ```
-3. Si c'est la première fois que vous lancez l'application, il faut créer la base de données :
+3. Copier le fichier `.env.example` en `.env` et le compléter avec les informations de connexion à la base de données voulue.  
+
+4. Si c'est la première fois que vous lancez l'application, il faut créer la base de données :
     ```bash
     yarn db:create
     ```
@@ -37,7 +39,15 @@ Pour lancer l'application en mode développement, il suffit de lancer la command
 yarn run dev
 ```
 
-## Reset the database :
+Vous devriez ensuite être capable d'accéder à l'API à l'adresse `http://localhost:3000`. 
+Voici un exemple de curl pour tester l'API :
+```bash
+curl --request GET --url 'http://localhost:3000/searchImprimes?title=Lorraine&author=THIERY'
+```
+Si l'API retourne une 200 avec un tableau vide, c'est que tout fonctionne correctement. 
+Pour obtenir des résultats, il faut peupler la base de données (cf. section Peupler la base de données ci-dessous).
+
+## Réinitialiser la base de données the database :
 *Cette section explique comment réinitialiser la base de données.*  
 :warning: **Attention :** Cette opération est irréversible et va supprimer de la donnée. Il est recommandé de sauvegarder la base de données avant de lancer cette commande.
 
@@ -45,6 +55,7 @@ Pour réinitialiser la base de données, il suffit de lancer la commande suivant
 ```bash
 yarn db:reset
 ```
+Toutes les lignes des différentes tables de la base de données seront supprimées mais, les tables seront conservées.
 Attention le script va s'exécuter sur la base de données définie dans votre fichier `.env`.
 
 ## Peupler la base de données :
@@ -84,7 +95,7 @@ Le contenu de chaque fichier doit également respecter le nom des colonnes de ce
 
 Une fois ces conditions réunies, il suffit d'exécuter la commande suivante :
 ```bash
-yarn db:populate
+yarn db:populate-from-csv
 ```
 Attention le script va s'exécuter sur la base de données définie dans votre fichier `.env`.
 

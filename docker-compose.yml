@@ -6,7 +6,7 @@ volumes:
 services:
   postgres-local:
     image: postgres:16.3
-    container_name: postgres-local
+    container_name: postgres-biblio-local
     restart: always
     ports:
       - "5432:5432"

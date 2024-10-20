@@ -6,10 +6,10 @@ const path = require('path');
 // Update these values as per your configuration this is the default configuration
 // in the docker-compose file
 const baseConfig = {
-  user: process.env.DB_USER,
+  user: 'root',
   host: process.env.DB_HOST,
   database: 'postgres',
-  password: process.env.DB_PASSWORD,
+  password: 'root',
 };
 
 const biblioConfig = {
@@ -33,13 +33,25 @@ const createDatabase = async () => {
     const res = await client.query(`SELECT 1 FROM pg_database WHERE datname = '${process.env.DB_NAME}'`);
     if (res.rowCount > 0) {
       console.log(`Database "${process.env.DB_NAME}" already exists`);
+      return false;
     } else {
       await client.query(`CREATE DATABASE ${process.env.DB_NAME}`);
       console.log('Database created successfully');
+      if (process.env.DB_USER === 'root') {
+        console.log('No need to create a user');
+        return true;
+      } else {
+        await client.query(`CREATE USER ${process.env.DB_USER} WITH PASSWORD '${process.env.DB_PASSWORD}'`);
+        await client.query(`GRANT ALL PRIVILEGES ON DATABASE ${process.env.DB_NAME} TO ${process.env.DB_USER}`);
+        await client.query(`ALTER DATABASE ${process.env.DB_NAME} OWNER TO ${process.env.DB_USER};`);
+        console.log(`User ${process.env.DB_USER} created successfully`);
+      }
+      return true;
     }
 
   } catch (err) {
     console.error('Error creating database:', err);
+    return false;
   } finally {
     await client.end();
   }
@@ -67,4 +79,4 @@ if (process.env.DB_HOST === undefined || process.env.DB_USER === undefined || pr
   process.exit(1);
 }
 
-createDatabase().then(() => populateDatabase());
+createDatabase().then(( res) => {if (res === true) populateDatabase()});
