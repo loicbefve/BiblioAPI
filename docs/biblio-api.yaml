@@ -11,19 +11,19 @@ paths:
       parameters:
         - name: author
           in: query
-          description: author of the imprime
+          description: author search parameter
           required: false
           schema:
             type: string
         - name: title
           in: query
-          description: author of the imprime
+          description: title search parameter
           required: false
           schema:
             type: string
         - name: keywords
           in: query
-          description: author of the imprime
+          description: keywords search parameter
           required: false
           schema:
             type: string
@@ -48,19 +48,19 @@ paths:
       parameters:
         - name: author
           in: query
-          description: author of the imprime
+          description: author search parameter
           required: false
           schema:
             type: string
         - name: title
           in: query
-          description: author of the imprime
+          description: title search parameter
           required: false
           schema:
             type: string
         - name: keywords
           in: query
-          description: author of the imprime
+          description: keywords search parameter
           required: false
           schema:
             type: string
@@ -85,19 +85,19 @@ paths:
       parameters:
         - name: author
           in: query
-          description: author of the imprime
+          description: author search parameter
           required: false
           schema:
             type: string
         - name: title
           in: query
-          description: author of the imprime
+          description: title search parameter
           required: false
           schema:
             type: string
         - name: keywords
           in: query
-          description: author of the imprime
+          description: keywords search parameter
           required: false
           schema:
             type: string
@@ -119,6 +119,25 @@ paths:
       summary: Search for fonds documentaire
       tags:
         - search
+      parameters:
+        - name: author
+          in: query
+          description: author search parameter
+          required: false
+          schema:
+            type: string
+        - name: title
+          in: query
+          description: title search parameter
+          required: false
+          schema:
+            type: string
+        - name: keywords
+          in: query
+          description: keywords search parameter
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: A list of fonds documentaire
@@ -140,7 +159,7 @@ paths:
       parameters:
         - name: keywords
           in: query
-          description: author of the imprime
+          description: keywords search parameter
           required: false
           schema:
             type: string
@@ -165,7 +184,7 @@ paths:
       parameters:
         - name: keywords
           in: query
-          description: author of the imprime
+          description: keywords search parameter
           required: false
           schema:
             type: string
