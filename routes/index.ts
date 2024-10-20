@@ -6,6 +6,7 @@ import { mapSearchFondsJohanniqueListToApi } from '../mappers/fonds_johannique';
 import { mapSearchFondsDocumentaireListToApi } from '../mappers/fonds_documentaire';
 import { mapSearchManuscritsListToApi } from '../mappers/manuscrits';
 import { mapSearchIndexPaysLorrainListToApi } from '../mappers/index_pays_lorrain';
+import apiDoc from '../docs/biblio-api.json';
 
 const router = express.Router();
 
@@ -124,6 +125,10 @@ router.get('/searchIndexPaysLorrain', async (req: Request, res: Response, _next:
     console.error('Failed querying the DB for searchManuscrits', error);
     res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+router.get('/api-doc', (_req: Request, res: Response, _next: NextFunction) => {
+  res.send(JSON.stringify(apiDoc))
 });
 
 export default router;
