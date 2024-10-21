@@ -2,6 +2,9 @@
 
 API du site de la bibliothèque.
 
+Cette API ne dispose d'auncun système d'authentification, il est donc recommandé de l'utiliser uniquement
+en interne et de ne pas l'exposer publiquement sur internet.
+
 ## Technologies :
 - Express.js (Serveur http)
 
