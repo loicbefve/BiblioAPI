@@ -1,5 +1,6 @@
 import pool from './pool';
 import { QueryResult } from 'pg';
+import { StatsDBModel } from './index';
 
 export interface ImprimesSearchDBModel {
   id: number;
@@ -82,4 +83,14 @@ export async function searchImprimes(author: string|undefined, title: string|und
   const result: QueryResult<ImprimesSearchDBModel> = await pool.query(finalQuery, queryParams)
   return result.rows;
 
+}
+
+export async function statsImprimes(): Promise<StatsDBModel> {
+  let query =
+    `SELECT 
+        count(*) as count
+     FROM imprimes`;
+
+  const result: QueryResult<StatsDBModel> = await pool.query(query)
+  return result.rows[0];
 }

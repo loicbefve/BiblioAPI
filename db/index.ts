@@ -5,6 +5,10 @@ import * as fondsDocumentaireDb from './fonds_documentaire';
 import * as manuscritsDb from './manuscrits';
 import * as indexPaysLorrainDb from './index_pays_lorrain';
 
+export interface StatsDBModel {
+  count: number;
+}
+
 export const db = {
   ...imprimesDb,
   ...factumsDb,

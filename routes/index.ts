@@ -22,7 +22,7 @@ function processParam(param: any): string | undefined {
   return cleanParam(decodeURIComponent(param));
 }
 
-router.get('/searchImprimes', async (req: Request, res: Response, _next: NextFunction) => {
+router.get('/search/imprimes', async (req: Request, res: Response, _next: NextFunction) => {
 
   /* GET URI QUERY PARAMETERS AND VALIDATE THEM */
   const { author, title, keywords } = req.query;
@@ -41,7 +41,7 @@ router.get('/searchImprimes', async (req: Request, res: Response, _next: NextFun
 
 });
 
-router.get('/searchFactums', async (req: Request, res: Response, _next: NextFunction) => {
+router.get('/search/factums', async (req: Request, res: Response, _next: NextFunction) => {
   /* GET URI QUERY PARAMETERS AND VALIDATE THEM */
   const { author, title, keywords } = req.query;
   let cleanedAuthorParam = processParam(author);
@@ -59,7 +59,7 @@ router.get('/searchFactums', async (req: Request, res: Response, _next: NextFunc
 
 });
 
-router.get('/searchFondsJohannique', async (req: Request, res: Response, _next: NextFunction) => {
+router.get('/search/fonds_johannique', async (req: Request, res: Response, _next: NextFunction) => {
   /* GET URI QUERY PARAMETERS AND VALIDATE THEM */
   const { author, title, keywords } = req.query;
   let cleanedAuthorParam = processParam(author);
@@ -77,7 +77,7 @@ router.get('/searchFondsJohannique', async (req: Request, res: Response, _next: 
 
 });
 
-router.get('/searchFondsDocumentaire', async (req: Request, res: Response, _next: NextFunction) => {
+router.get('/search/fonds_documentaire', async (req: Request, res: Response, _next: NextFunction) => {
   /* GET URI QUERY PARAMETERS AND VALIDATE THEM */
   const { author, title, keywords } = req.query;
   let cleanedAuthorParam = processParam(author);
@@ -95,7 +95,7 @@ router.get('/searchFondsDocumentaire', async (req: Request, res: Response, _next
 
 });
 
-router.get('/searchManuscrits', async (req: Request, res: Response, _next: NextFunction) => {
+router.get('/search/manuscrits', async (req: Request, res: Response, _next: NextFunction) => {
   /* GET URI QUERY PARAMETERS AND VALIDATE THEM */
   const { keywords } = req.query;
   let cleanedKeywordsParam = processParam(keywords);
@@ -111,7 +111,7 @@ router.get('/searchManuscrits', async (req: Request, res: Response, _next: NextF
 
 });
 
-router.get('/searchIndexPaysLorrain', async (req: Request, res: Response, _next: NextFunction) => {
+router.get('/search/index_pays_lorrain', async (req: Request, res: Response, _next: NextFunction) => {
   /* GET URI QUERY PARAMETERS AND VALIDATE THEM */
   const { keywords } = req.query;
   let cleanedKeywordsParam = processParam(keywords);
@@ -122,6 +122,66 @@ router.get('/searchIndexPaysLorrain', async (req: Request, res: Response, _next:
     res.json(apiResult);
   } catch (error) {
     console.error('Failed querying the DB for searchManuscrits', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.get('/stats/imprimes', async (req: Request, res: Response, _next: NextFunction) => {
+  try {
+    const dbResult = await db.statsImprimes();
+    res.json(dbResult);
+  } catch (error) {
+    console.error('Failed querying the DB for statsImprimes', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.get('/stats/factums', async (req: Request, res: Response, _next: NextFunction) => {
+  try {
+    const dbResult = await db.statsFactums();
+    res.json(dbResult);
+  } catch (error) {
+    console.error('Failed querying the DB for statsImprimes', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.get('/stats/fonds_documentaire', async (req: Request, res: Response, _next: NextFunction) => {
+  try {
+    const dbResult = await db.statsFondsDocumentaire();
+    res.json(dbResult);
+  } catch (error) {
+    console.error('Failed querying the DB for statsImprimes', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.get('/stats/fonds_johannique', async (req: Request, res: Response, _next: NextFunction) => {
+  try {
+    const dbResult = await db.statsFondsJohannique();
+    res.json(dbResult);
+  } catch (error) {
+    console.error('Failed querying the DB for statsImprimes', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.get('/stats/manuscrits', async (req: Request, res: Response, _next: NextFunction) => {
+  try {
+    const dbResult = await db.statsManuscrits();
+    res.json(dbResult);
+  } catch (error) {
+    console.error('Failed querying the DB for statsImprimes', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.get('/stats/index_pays_lorrain', async (req: Request, res: Response, _next: NextFunction) => {
+  try {
+    const dbResult = await db.statsIndexPaysLorrain();
+    res.json(dbResult);
+  } catch (error) {
+    console.error('Failed querying the DB for statsImprimes', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

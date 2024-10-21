@@ -1,5 +1,6 @@
 import pool from './pool';
 import { QueryResult } from 'pg';
+import { StatsDBModel } from './index';
 
 export interface IndexPaysLorrainSearchDBModel {
   id: number;
@@ -44,4 +45,14 @@ export async function searchIndexPaysLorrain(keywords: string|undefined): Promis
   const result: QueryResult<IndexPaysLorrainSearchDBModel> = await pool.query(finalQuery, queryParams)
   return result.rows;
 
+}
+
+export async function statsIndexPaysLorrain(): Promise<StatsDBModel> {
+  let query =
+    `SELECT 
+        count(*) as count
+     FROM index_pays_lorrain`;
+
+  const result: QueryResult<StatsDBModel> = await pool.query(query)
+  return result.rows[0];
 }

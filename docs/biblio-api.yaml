@@ -3,7 +3,7 @@ info:
   title: Biblio API
   version: 1.0.0
 paths:
-  /searchImprimes:
+  /search/imprimes:
     get:
       summary: Search for imprimes
       tags:
@@ -40,7 +40,7 @@ paths:
           description: Not found
         '500':
           description: Internal server error
-  /searchFactums:
+  /search/factums:
     get:
       summary: Search for factums
       tags:
@@ -77,7 +77,7 @@ paths:
           description: Not found
         '500':
           description: Internal server error
-  /searchFondsJohannique:
+  /search/fondsJohannique:
     get:
       summary: Search for fonds johannique
       tags:
@@ -114,7 +114,7 @@ paths:
           description: Not found
         '500':
           description: Internal server error
-  /searchFondsDocumentaire:
+  /search/fonds_documentaire:
     get:
       summary: Search for fonds documentaire
       tags:
@@ -151,7 +151,7 @@ paths:
           description: Not found
         '500':
           description: Internal server error
-  /searchManuscrits:
+  /search/manuscrits:
     get:
       summary: Search for manuscrits
       tags:
@@ -176,7 +176,7 @@ paths:
           description: Not found
         '500':
           description: Internal server error
-  /searchIndexPaysLorrain:
+  /search/index_pays_lorrain:
     get:
       summary: Search for index pays lorrain
       tags:
@@ -197,6 +197,114 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/IndexPaysLorrain'
+        '404':
+          description: Not found
+        '500':
+          description: Internal server error
+  /stats/imprimes:
+    get:
+      summary: Stats on the imprimes
+      tags:
+        - stats
+      responses:
+        '200':
+          description: Stats on the imprimes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Stats'
+        '404':
+          description: Not found
+        '500':
+          description: Internal server error
+  /stats/factums:
+    get:
+      summary: Stats on the factums
+      tags:
+        - stats
+      responses:
+        '200':
+          description: Stats on the factums
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Stats'
+        '404':
+          description: Not found
+        '500':
+          description: Internal server error
+  /stats/fonds_documentaire:
+    get:
+      summary: Stats on the fonds documentaire
+      tags:
+        - stats
+      responses:
+        '200':
+          description: Stats on the fonds documentaire
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Stats'
+        '404':
+          description: Not found
+        '500':
+          description: Internal server error
+  /stats/fonds_johannique:
+    get:
+      summary: Stats on the fonds johannique
+      tags:
+        - stats
+      responses:
+        '200':
+          description: Stats on the fonds johannique
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Stats'
+        '404':
+          description: Not found
+        '500':
+          description: Internal server error
+  /stats/manuscrits:
+    get:
+      summary: Stats on the manuscrits
+      tags:
+        - stats
+      responses:
+        '200':
+          description: Stats on the manuscrits
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Stats'
+        '404':
+          description: Not found
+        '500':
+          description: Internal server error
+  /stats/index_pays_lorrain:
+    get:
+      summary: Stats on the index pays lorrain
+      tags:
+        - stats
+      responses:
+        '200':
+          description: Stats on the index pays lorrain
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Stats'
         '404':
           description: Not found
         '500':
@@ -369,3 +477,8 @@ components:
             properties:
                 commentaires:
                   type: string
+    Stats:
+        type: object
+        properties:
+          count:
+            type: integer

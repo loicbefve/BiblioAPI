@@ -1,5 +1,6 @@
 import pool from './pool';
 import { QueryResult } from 'pg';
+import { StatsDBModel } from './index';
 
 export interface FactumsSearchDBModel {
   id: number;
@@ -83,4 +84,14 @@ export async function searchFactums(author: string|undefined, title: string|unde
   const result: QueryResult<FactumsSearchDBModel> = await pool.query(finalQuery, queryParams)
   return result.rows;
 
+}
+
+export async function statsFactums(): Promise<StatsDBModel> {
+  let query =
+    `SELECT 
+        count(*) as count
+     FROM factums`;
+
+  const result: QueryResult<StatsDBModel> = await pool.query(query)
+  return result.rows[0];
 }

@@ -1,5 +1,6 @@
 import pool from './pool';
 import { QueryResult } from 'pg';
+import { StatsDBModel } from './index';
 
 export interface ManuscritsSearchDBModel {
   id: number;
@@ -44,4 +45,14 @@ export async function searchManuscrits(keywords: string|undefined): Promise<Manu
   const result: QueryResult<ManuscritsSearchDBModel> = await pool.query(finalQuery, queryParams)
   return result.rows;
 
+}
+
+export async function statsManuscrits(): Promise<StatsDBModel> {
+  let query =
+    `SELECT 
+        count(*) as count
+     FROM manuscrits`;
+
+  const result: QueryResult<StatsDBModel> = await pool.query(query)
+  return result.rows[0];
 }
