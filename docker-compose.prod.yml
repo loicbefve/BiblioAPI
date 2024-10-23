@@ -1,0 +1,27 @@
+version: '3.8'
+
+volumes:
+  pg-data:
+
+services:
+  biblio-app:
+    image: loicbefve/biblio-api:latest
+    container_name: biblio-app
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_HOST=biblio-db
+    env_file:
+      - .env
+    depends_on:
+      - biblio-db
+  biblio-db:
+    image: postgres:16.3
+    container_name: biblio-db
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    env_file:
+      - .env
