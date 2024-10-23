@@ -25,7 +25,7 @@ cependant cela n'est pas garanti.*
     ```
 2. Démarrer la base de données :
     ```bash
-    docker-compose up -d
+    docker-compose -f docker-compose.dev.yml up -d
     ```
 3. Copier le fichier `.env.example` en `.env` et le compléter avec les informations de connexion à la base de données voulue.  
 
