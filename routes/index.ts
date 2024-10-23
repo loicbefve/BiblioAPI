@@ -186,4 +186,8 @@ router.get('/stats/index_pays_lorrain', async (req: Request, res: Response, _nex
   }
 });
 
+router.get('/health', (_req: Request, res: Response, _next: NextFunction) => {
+  res.json({ status: 'UP' });
+})
+
 export default router;
