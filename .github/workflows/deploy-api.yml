@@ -2,14 +2,14 @@ name: 📦 Deploy biblio API
 
 on:
   workflow_dispatch:
-    - inputs:
-        environment:
-          description: 'Environment to deploy to'
-          required: true
-          default: 'prod'
-          options:
-            - 'prod'
-            - 'preprod'
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'prod'
+        options:
+          - 'prod'
+          - 'preprod'
 
 jobs:
   publish:
