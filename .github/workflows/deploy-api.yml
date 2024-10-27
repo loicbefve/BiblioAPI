@@ -21,20 +21,6 @@ env:
   IMAGE_NAME: loicbefve/biblio-api:latest
 
 jobs:
-  setup:
-    name: 🛠 Setup environment
-    runs-on: ubuntu-latest
-
-    steps:
-      - name : Set SSH_HOST for the env
-        run: |
-          if [ "${{ github.event.inputs.environment }}" == "prod" ]; then
-            echo "SSH_HOST=${{ secrets.SSH_HOST_PROD }}" >> $GITHUB_ENV
-          else
-            echo "SSH_HOST=${{ secrets.SSH_HOST_DEV }}" >> $GITHUB_ENV
-          fi
-
-
   publish:
     name: 🚀 Publish image to registry
     runs-on: ubuntu-latest
@@ -60,6 +46,13 @@ jobs:
     needs: publish
 
     steps:
+      - name: Set SSH_HOST for the env
+        run: |
+          if [ "${{ github.event.inputs.environment }}" == "prod" ]; then
+            echo "SSH_HOST=${{ secrets.SSH_HOST_PROD }}" >> $GITHUB_ENV
+          else
+            echo "SSH_HOST=${{ secrets.SSH_HOST_DEV }}" >> $GITHUB_ENV
+          fi
       - name: install SSH keys
         run: |
           install -m 600 -D /dev/null ~/.ssh/id_rsa
