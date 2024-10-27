@@ -1,5 +1,6 @@
 interface Config {
   fichesPath: string;
+  apiPort?: number;
   db: {
     user: string;
     host: string;
@@ -12,6 +13,7 @@ interface Config {
 
 export const config: Config = {
   fichesPath: process.env.FICHES_PATH || '',
+  apiPort: parseInt(process.env.API_PORT || '') || 3000,
   db: {
     user: process.env.DB_USER || '',
     host: process.env.DB_HOST || '',
