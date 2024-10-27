@@ -6,26 +6,72 @@ on:
       environment:
         description: 'Environment to deploy to'
         required: true
-        default: 'prod'
+        default: 'dev'
+        type: choice
         options:
           - 'prod'
-          - 'preprod'
+          - 'dev'
+      ref:
+        description: 'What branch, tag or SHA to deploy (default: master)'
+        required: false
+        default: 'master'
+
+env:
+  DOCKER_REGISTRY: ghcr.io
+  IMAGE_NAME: loicbefve/biblio-api:latest
+  SSH_HOST: ${{  inputs.environment == 'prod' && secrets.SSH_HOST || ''}}
 
 jobs:
+  setup:
+    name: 🛠 Setup environment
+    runs-on: ubuntu-latest
+
+    steps:
+      - name : Set SSH_HOST for the env
+        run: |
+          if [ "${{ github.event.inputs.environment }}" == "prod" ]; then
+            echo "SSH_HOST=${{ secrets.SSH_HOST_PROD }}" >> $GITHUB_ENV
+          else
+            echo "SSH_HOST=${{ secrets.SSH_HOST_DEV }}" >> $GITHUB_ENV
+          fi
+
+
   publish:
+    name: 🚀 Publish image to registry
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
 
       - name: Login on registry
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login ghcr.io -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+        run: echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u loicbefve --password-stdin
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+      - name: Build and push image
+        run: |
+          docker build . --tag ${{env.DOCKER_REGISTRY}}/${{env.IMAGE_NAME}}
+          docker push ${{env.DOCKER_REGISTRY}}/${{env.IMAGE_NAME}}
 
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}  # Your SSH private key
+  deploy:
+    name: 🚚 Deploy to environment
+    runs-on: ubuntu-latest
+
+    needs: publish
+
+    steps:
+      - name: install SSH keys
+        run: |
+          install -m 600 -D /dev/null ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+            ssh-keyscan -H ${{env.SSH_HOST}} >> ~/.ssh/known_hosts
+
+      - name: connect and pull
+        run: |
+          ssh ${{secret.SSH_USER}}@${{env.SSH_HOST}} 
+          "cd ${{secrets.WORK_DIR}} && docker-compose pull && docker-compose up -d && exit"
+
+      - name : cleanup
+        run: |
+          rm -rf ~/.ssh
