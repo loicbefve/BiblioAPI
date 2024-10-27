@@ -69,7 +69,7 @@ jobs:
 
       - name: connect and pull
         run: |
-          ssh ${{secret.SSH_USER}}@${{env.SSH_HOST}} 
+          ssh ${{secrets.SSH_USER}}@${{env.SSH_HOST}} 
           "cd ${{secrets.WORK_DIR}} && docker-compose pull && docker-compose up -d && exit"
 
       - name : cleanup
