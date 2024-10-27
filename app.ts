@@ -50,5 +50,5 @@ const errorHandler: ErrorRequestHandler = (err: Error, req: Request, res: Respon
 };
 app.use(errorHandler);
 
-app.listen(3000);
+app.listen(config.apiPort || 3000);
 console.log('Server started on port 3000');
