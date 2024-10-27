@@ -7,6 +7,7 @@ services:
   biblio-app:
     image: ghcr.io/loicbefve/biblio-api:latest
     container_name: biblio-app
+    restart: always
     ports:
       - "${API_PORT:-3000}:3000"
     environment:
