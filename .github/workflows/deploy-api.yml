@@ -19,7 +19,6 @@ on:
 env:
   DOCKER_REGISTRY: ghcr.io
   IMAGE_NAME: loicbefve/biblio-api:latest
-  SSH_HOST: ${{  inputs.environment == 'prod' && secrets.SSH_HOST || ''}}
 
 jobs:
   setup:
