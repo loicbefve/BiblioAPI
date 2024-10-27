@@ -19,6 +19,7 @@ services:
     image: postgres:16.3
     container_name: biblio-db
     restart: always
+    shm_size: 256mb
     ports:
       - "5432:5432"
     volumes:

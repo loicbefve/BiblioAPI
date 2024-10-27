@@ -61,8 +61,7 @@ jobs:
 
       - name: connect and pull
         run: |
-          ssh ${{secrets.SSH_USER}}@${{env.SSH_HOST}} 
-          "cd ${{secrets.WORK_DIRECTORY}} && docker-compose -f docker-compose.prod.yml pull && docker-compose -f docker-compose.prod.yml up -d && exit"
+          ssh ${{secrets.SSH_USER}}@${{env.SSH_HOST}} "cd ${{secrets.WORK_DIRECTORY}} && sudo docker-compose -f docker-compose.prod.yml pull && sudo docker-compose -f docker-compose.prod.yml up -d && exit"
 
       - name : cleanup
         run: |
