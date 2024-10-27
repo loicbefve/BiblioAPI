@@ -5,7 +5,7 @@ volumes:
 
 services:
   biblio-app:
-    image: loicbefve/biblio-api:latest
+    image: ghcr.io/loicbefve/biblio-api:latest
     container_name: biblio-app
     ports:
       - "${API_PORT:-3000}:3000"
