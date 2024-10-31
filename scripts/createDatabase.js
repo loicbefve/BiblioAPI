@@ -6,10 +6,10 @@ const path = require('path');
 // Update these values as per your configuration this is the default configuration
 // in the docker-compose file
 const baseConfig = {
-  user: 'root',
+  user: process.env.POSTGRES_USER || 'root',
   host: process.env.DB_HOST,
   database: 'postgres',
-  password: 'root',
+  password: process.env.POSTGRES_PASSWORD || 'root',
 };
 
 const biblioConfig = {
