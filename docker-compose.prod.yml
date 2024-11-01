@@ -16,6 +16,8 @@ services:
       - .env
     depends_on:
       - biblio-db
+    volumes:
+      - ${FICHES_PATH}:${FICHES_PATH}
   biblio-db:
     image: postgres:16.3
     container_name: biblio-db
