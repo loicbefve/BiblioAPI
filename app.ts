@@ -25,6 +25,7 @@ app.use(cors());
 
 app.use('/', indexRouter);
 app.use('/fiches', express.static(config.fichesPath));
+console.log(`Serving fiches from ${config.fichesPath}`);
 
 // If none of the routes above match, I will return a 404 error that will be caught by the error handler
 app.use(function (req:Request, res:Response, next: NextFunction) {
