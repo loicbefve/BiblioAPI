@@ -9,7 +9,7 @@ services:
     container_name: biblio-app
     restart: always
     ports:
-      - "3000:3000"
+      - ${API_PORT}:${API_PORT}
     environment:
       - DB_HOST=biblio-db
     env_file:
