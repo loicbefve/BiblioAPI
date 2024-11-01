@@ -77,7 +77,7 @@ paths:
           description: Not found
         '500':
           description: Internal server error
-  /search/fondsJohannique:
+  /search/fonds-johannique:
     get:
       summary: Search for fonds johannique
       tags:
