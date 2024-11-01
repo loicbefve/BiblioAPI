@@ -46,12 +46,14 @@ jobs:
     needs: publish
 
     steps:
-      - name: Set SSH_HOST for the env
+      - name: Set variables for the env
         run: |
           if [ "${{ github.event.inputs.environment }}" == "prod" ]; then
             echo "SSH_HOST=${{ secrets.SSH_HOST_PROD }}" >> $GITHUB_ENV
+            echo "SSH_USER=${{ secrets.SSH_USER_PROD }}" >> $GITHUB_ENV
           else
             echo "SSH_HOST=${{ secrets.SSH_HOST_DEV }}" >> $GITHUB_ENV
+            echo "SSH_USER=${{ secrets.SSH_USER_DEV }}" >> $GITHUB_ENV
           fi
       - name: install SSH keys
         run: |
@@ -61,7 +63,7 @@ jobs:
 
       - name: connect and pull
         run: |
-          ssh ${{secrets.SSH_USER}}@${{env.SSH_HOST}} "cd ${{secrets.WORK_DIRECTORY}} && sudo git pull && sudo docker-compose -f docker-compose.prod.yml pull && sudo docker-compose -f docker-compose.prod.yml up -d && exit"
+          ssh ${{env.SSH_USER}}@${{env.SSH_HOST}} "cd ${{secrets.WORK_DIRECTORY}} && sudo git pull && sudo docker-compose -f docker-compose.prod.yml pull && sudo docker-compose -f docker-compose.prod.yml up -d && exit"
 
       - name : cleanup
         run: |
