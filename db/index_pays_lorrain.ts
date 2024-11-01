@@ -9,7 +9,7 @@ export interface IndexPaysLorrainSearchDBModel {
 
 export async function searchIndexPaysLorrain(keywords: string|undefined): Promise<IndexPaysLorrainSearchDBModel[]> {
 
-  let baseQuery =
+  let query =
     `SELECT 
         ipl.id,
         ipl.commentaires
@@ -18,6 +18,9 @@ export async function searchIndexPaysLorrain(keywords: string|undefined): Promis
   let secondPart = `
     FROM index_pays_lorrain as ipl 
   `;
+
+  let groupPart = ' GROUP BY ipl.id, ipl.commentaires'
+  let orderPart = ' ORDER BY score DESC';
 
   const queryParams = [];
   const tsQueryConditions = [];
@@ -30,19 +33,17 @@ export async function searchIndexPaysLorrain(keywords: string|undefined): Promis
   }
 
   if (tsQueryConditions.length > 0) {
-    baseQuery += `, ${scoreConditions.join(' + ')} as score`;
-    baseQuery += secondPart;
-    baseQuery += ` WHERE (${tsQueryConditions.join(' OR ')})`;
+    query += `, ${scoreConditions.join(' + ')} as score`;
+    query += secondPart;
+    query += ` WHERE (${tsQueryConditions.join(' OR ')})`;
+    query += groupPart;
+    query += orderPart;
   } else {
-    baseQuery += secondPart;
+    query += secondPart;
+    query += groupPart;
   }
 
-  const finalQuery =
-    baseQuery +
-    ' GROUP BY ipl.id, ipl.commentaires' +
-    ' ORDER BY score DESC';
-
-  const result: QueryResult<IndexPaysLorrainSearchDBModel> = await pool.query(finalQuery, queryParams)
+  const result: QueryResult<IndexPaysLorrainSearchDBModel> = await pool.query(query, queryParams)
   return result.rows;
 
 }

@@ -21,7 +21,7 @@ export interface ImprimesSearchDBModel {
 }
 
 export async function searchImprimes(author: string|undefined, title: string|undefined, keywords: string|undefined): Promise<ImprimesSearchDBModel[]> {
-  let baseQuery =
+  let query =
     `SELECT 
         imp.id,
         imp.epi, 
@@ -44,6 +44,9 @@ export async function searchImprimes(author: string|undefined, title: string|und
      LEFT JOIN index_fiches_total as ind
      ON (imp.cote = ind.cote)
      `;
+
+  let groupPart = ' GROUP BY imp.id, imp.epi, imp.travee, imp.tablette, imp.cote, imp.ordre, imp.lieu, imp.format, imp.auteur, imp.titre, imp.annee, imp.tome, imp.etat, imp.commentaire'
+  let orderPart = ' ORDER BY score DESC';
 
   const queryParams = [];
   const tsQueryConditions = [];
@@ -68,19 +71,19 @@ export async function searchImprimes(author: string|undefined, title: string|und
   }
 
   if (tsQueryConditions.length > 0) {
-    baseQuery += `, ${scoreConditions.join(' + ')} as score`;
-    baseQuery += secondPart;
-    baseQuery += ` WHERE (${tsQueryConditions.join(' OR ')})`;
+    query += `, ${scoreConditions.join(' + ')} as score`;
+    query += secondPart;
+    query += ` WHERE (${tsQueryConditions.join(' OR ')})`;
+    query += groupPart;
+    query += orderPart;
   } else {
-    baseQuery += secondPart;
+    query += secondPart;
+    query += groupPart;
   }
 
-  const finalQuery =
-    baseQuery +
-    ' GROUP BY imp.id, imp.epi, imp.travee, imp.tablette, imp.cote, imp.ordre, imp.lieu, imp.format, imp.auteur, imp.titre, imp.annee, imp.tome, imp.etat, imp.commentaire' +
-    ' ORDER BY score DESC';
 
-  const result: QueryResult<ImprimesSearchDBModel> = await pool.query(finalQuery, queryParams)
+
+  const result: QueryResult<ImprimesSearchDBModel> = await pool.query(query, queryParams)
   return result.rows;
 
 }

@@ -22,7 +22,7 @@ export interface FactumsSearchDBModel {
 
 export async function searchFactums(author: string|undefined, title: string|undefined, keywords: string|undefined): Promise<FactumsSearchDBModel[]> {
 
-  let baseQuery =
+  let query =
     `SELECT 
         fac.id,
         fac.cote, 
@@ -45,6 +45,11 @@ export async function searchFactums(author: string|undefined, title: string|unde
     LEFT JOIN index_fiches_total as ind 
     ON (fac.cote=ind.cote)
   `;
+
+  let groupPart =
+    ' GROUP BY fac.id, fac.cote, fac.tome, fac.type, fac.auteur, fac.titre, fac.couverture, fac.langue, fac.edition, fac.datation, fac.contenu, fac.etat, fac.notes, fac.emplacement'
+
+  let orderPart = ' ORDER BY score DESC';
 
   const queryParams = [];
   const tsQueryConditions = [];
@@ -69,19 +74,18 @@ export async function searchFactums(author: string|undefined, title: string|unde
   }
 
   if (tsQueryConditions.length > 0) {
-    baseQuery += `, ${scoreConditions.join(' + ')} as score`;
-    baseQuery += secondPart;
-    baseQuery += ` WHERE (${tsQueryConditions.join(' OR ')})`;
+    query += `, ${scoreConditions.join(' + ')} as score`;
+    query += secondPart;
+    query += ` WHERE (${tsQueryConditions.join(' OR ')})`;
+    query += groupPart;
+    query += orderPart;
+
   } else {
-    baseQuery += secondPart;
+    query += secondPart;
+    query += groupPart;
   }
 
-  const finalQuery =
-    baseQuery +
-    ' GROUP BY fac.id, fac.cote, fac.tome, fac.type, fac.auteur, fac.titre, fac.couverture, fac.langue, fac.edition, fac.datation, fac.contenu, fac.etat, fac.notes, fac.emplacement' +
-    ' ORDER BY score DESC';
-
-  const result: QueryResult<FactumsSearchDBModel> = await pool.query(finalQuery, queryParams)
+  const result: QueryResult<FactumsSearchDBModel> = await pool.query(query, queryParams)
   return result.rows;
 
 }

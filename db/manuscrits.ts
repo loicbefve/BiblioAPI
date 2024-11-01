@@ -9,7 +9,7 @@ export interface ManuscritsSearchDBModel {
 
 export async function searchManuscrits(keywords: string|undefined): Promise<ManuscritsSearchDBModel[]> {
 
-  let baseQuery =
+  let query =
     `SELECT 
         man.id,
         man.commentaires
@@ -18,6 +18,9 @@ export async function searchManuscrits(keywords: string|undefined): Promise<Manu
   let secondPart = `
     FROM manuscrits as man 
   `;
+
+  let groupPart = ' GROUP BY man.id, man.commentaires'
+  let orderPart = ' ORDER BY score DESC';
 
   const queryParams = [];
   const tsQueryConditions = [];
@@ -30,19 +33,17 @@ export async function searchManuscrits(keywords: string|undefined): Promise<Manu
   }
 
   if (tsQueryConditions.length > 0) {
-    baseQuery += `, ${scoreConditions.join(' + ')} as score`;
-    baseQuery += secondPart;
-    baseQuery += ` WHERE (${tsQueryConditions.join(' OR ')})`;
+    query += `, ${scoreConditions.join(' + ')} as score`;
+    query += secondPart;
+    query += ` WHERE (${tsQueryConditions.join(' OR ')})`;
+    query += groupPart;
+    query += orderPart;
   } else {
-    baseQuery += secondPart;
+    query += secondPart;
+    query += groupPart;
   }
 
-  const finalQuery =
-    baseQuery +
-    ' GROUP BY man.id, man.commentaires' +
-    ' ORDER BY score DESC';
-
-  const result: QueryResult<ManuscritsSearchDBModel> = await pool.query(finalQuery, queryParams)
+  const result: QueryResult<ManuscritsSearchDBModel> = await pool.query(query, queryParams)
   return result.rows;
 
 }

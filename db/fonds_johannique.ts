@@ -1,6 +1,7 @@
 import pool from './pool';
 import { QueryResult } from 'pg';
 import { StatsDBModel } from './index';
+import logger from 'morgan';
 
 export interface FondsJohanniqueSearchDBModel {
   id: number;
@@ -23,7 +24,8 @@ export interface FondsJohanniqueSearchDBModel {
 
 
 export async function searchFondsJohannique(author: string|undefined, title: string|undefined, keywords: string|undefined): Promise<FondsJohanniqueSearchDBModel[]> {
-  let baseQuery =
+  console.log('searchFondsJohannique');
+  let query =
     `SELECT 
         fon.id,
         fon.epi,
@@ -44,6 +46,9 @@ export async function searchFondsJohannique(author: string|undefined, title: str
      LEFT JOIN index_fiches_total as ind 
      ON (fon.cote=ind.cote)
      `;
+
+  let groupPart = ' GROUP BY fon.id, fon.epi, fon.travee, fon.tablette, fon.auteur, fon.titre, fon.annee, fon.cote, fon.tome, fon.etat, fon.metrage_ou_commentaire, fon.carton'
+  let orderPart = ' ORDER BY score DESC';
 
   const queryParams = [];
   const tsQueryConditions = [];
@@ -68,19 +73,18 @@ export async function searchFondsJohannique(author: string|undefined, title: str
   }
 
   if (tsQueryConditions.length > 0) {
-    baseQuery += `, ${scoreConditions.join(' + ')} as score`;
-    baseQuery += secondPart;
-    baseQuery += ` WHERE (${tsQueryConditions.join(' OR ')})`;
+    query += `, ${scoreConditions.join(' + ')} as score`;
+    query += secondPart;
+    query += ` WHERE (${tsQueryConditions.join(' OR ')})`;
+    query += groupPart;
+    query += orderPart;
   } else {
-    baseQuery += secondPart;
+    query += secondPart;
+    query += groupPart;
   }
 
-  const finalQuery =
-    baseQuery +
-    ' GROUP BY fon.id, fon.epi, fon.travee, fon.tablette, fon.auteur, fon.titre, fon.annee, fon.cote, fon.tome, fon.etat, fon.metrage_ou_commentaire, fon.carton' +
-    ' ORDER BY score DESC';
 
-  const result: QueryResult<FondsJohanniqueSearchDBModel> = await pool.query(finalQuery, queryParams)
+  const result: QueryResult<FondsJohanniqueSearchDBModel> = await pool.query(query, queryParams)
   return result.rows;
 
 }
