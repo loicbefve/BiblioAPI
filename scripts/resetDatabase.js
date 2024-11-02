@@ -3,10 +3,10 @@ const { Pool } = require('pg');
 require('dotenv').config();
 
 const pool = new Pool({
-  user: 'root',
+  user: process.env.POSTGRES_USER || 'root',
   host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: 'root'
+  database: 'postgres',
+  password: process.env.POSTGRES_PASSWORD || 'root',
 });
 
 async function resetDatabase() {
