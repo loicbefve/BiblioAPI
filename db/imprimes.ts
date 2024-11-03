@@ -59,8 +59,8 @@ export async function searchImprimes(author: string|undefined, title: string|und
   }
 
   if (title) {
-    tsQueryConditions.push(`tsvector_titre @@ plainplainto_tsquery('french', $${queryParams.length + 1})`);
-    scoreConditions.push(`ts_rank(tsvector_titre, plainplainto_tsquery('french', $${queryParams.length + 1}))`);
+    tsQueryConditions.push(`tsvector_titre @@ plainto_tsquery('french', $${queryParams.length + 1})`);
+    scoreConditions.push(`ts_rank(tsvector_titre, plainto_tsquery('french', $${queryParams.length + 1}))`);
     queryParams.push(title);
   }
 
