@@ -55,20 +55,20 @@ export async function searchFondsJohannique(author: string|undefined, title: str
   const scoreConditions = [];
 
   if (author) {
-    tsQueryConditions.push(`tsvector_auteur @@ to_tsquery('french', $${queryParams.length + 1})`);
-    scoreConditions.push(`ts_rank(tsvector_auteur, to_tsquery('french', $${queryParams.length + 1}))`);
+    tsQueryConditions.push(`tsvector_auteur @@ plainto_tsquery('french', $${queryParams.length + 1})`);
+    scoreConditions.push(`ts_rank(tsvector_auteur, plainto_tsquery('french', $${queryParams.length + 1}))`);
     queryParams.push(author);
   }
 
   if (title) {
-    tsQueryConditions.push(`tsvector_titre @@ to_tsquery('french', $${queryParams.length + 1})`);
-    scoreConditions.push(`ts_rank(tsvector_titre, to_tsquery('french', $${queryParams.length + 1}))`);
+    tsQueryConditions.push(`tsvector_titre @@ plainto_tsquery('french', $${queryParams.length + 1})`);
+    scoreConditions.push(`ts_rank(tsvector_titre, plainto_tsquery('french', $${queryParams.length + 1}))`);
     queryParams.push(title);
   }
 
   if (keywords) {
-    tsQueryConditions.push(`tsvector_combined @@ to_tsquery('french', $${queryParams.length + 1})`);
-    scoreConditions.push(`ts_rank(tsvector_combined, to_tsquery('french', $${queryParams.length + 1}))`);
+    tsQueryConditions.push(`tsvector_combined @@ plainto_tsquery('french', $${queryParams.length + 1})`);
+    scoreConditions.push(`ts_rank(tsvector_combined, plainto_tsquery('french', $${queryParams.length + 1}))`);
     queryParams.push(keywords);
   }
 

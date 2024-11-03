@@ -27,8 +27,8 @@ export async function searchIndexPaysLorrain(keywords: string|undefined): Promis
   const scoreConditions = [];
 
   if (keywords) {
-    tsQueryConditions.push(`tsvector_commentaires @@ to_tsquery('french', $${queryParams.length + 1})`);
-    scoreConditions.push(`ts_rank(tsvector_commentaires, to_tsquery('french', $${queryParams.length + 1}))`);
+    tsQueryConditions.push(`tsvector_commentaires @@ plainto_tsquery('french', $${queryParams.length + 1})`);
+    scoreConditions.push(`ts_rank(tsvector_commentaires, plainto_tsquery('french', $${queryParams.length + 1}))`);
     queryParams.push(keywords);
   }
 
